@@ -3,5 +3,6 @@ build/
 .env
 .env.local
 .DS_Store
-.claude/
+.claude/settings.local.json
 migration_countdown.sql
+.vercel
