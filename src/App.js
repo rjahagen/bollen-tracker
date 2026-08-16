@@ -873,7 +873,9 @@ export default function App() {
 
   function addLatePlayer(friend) {
     const g = game;
-    const maxScore = Math.max(...g.scores);
+    const elim = g.eliminated || [];
+    const activeScores = g.scores.filter((_, i) => !elim.includes(i));
+    const maxScore = activeScores.length ? Math.max(...activeScores) : 0;
     const ns = { ...g, players:[...g.players, slimPlayer(friend)], scores:[...g.scores, maxScore] };
     setGame(ns); syncLiveGame(ns);
     setShowAddLatePlayer(false);
@@ -1477,7 +1479,7 @@ export default function App() {
             <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.88)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
               <div style={{background:th.surface,border:`1px solid ${th.border}`,borderRadius:4,padding:20,maxWidth:340,width:"100%",maxHeight:"80dvh",display:"flex",flexDirection:"column"}}>
                 <p style={{color:th.gold,fontSize:14,fontWeight:700,letterSpacing:2,textTransform:"uppercase",margin:"0 0 4px",fontFamily:th.titleFont}}>Speler toevoegen</p>
-                <p style={{color:th.textMid,fontSize:12,margin:"0 0 14px"}}>Inkopen voor: {Math.max(...game.scores)} punten</p>
+                <p style={{color:th.textMid,fontSize:12,margin:"0 0 14px"}}>Inkopen voor: {(()=>{const activeScores=game.scores.filter((_,i)=>!elim.includes(i));return activeScores.length?Math.max(...activeScores):0;})()} punten</p>
                 <div style={{display:"flex",gap:8,marginBottom:12}}>
                   <input id="late-guest-input" style={{...S.input,flex:1}} placeholder="Naam gast..." autoComplete="off"/>
                   <button style={{...S.primary,width:"auto",padding:"11px 18px"}} onClick={()=>{const el=document.getElementById("late-guest-input");const val=el?.value?.trim();if(!val)return;addLatePlayer({id:`guest_${Date.now()}`,name:val,color:th.gold});el.value="";}}>+</button>
