@@ -4,7 +4,6 @@ import { supabase } from './supabase';
 // THEMES
 // ══════════════════════════════════════════════════════════════════════════════
 const JAZZ_LOGO = "data:image/jpeg;base64,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";
-const WK_BG = "data:image/jpeg;base64,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";
 const THEMES = {
   normal: {
     name: "Normal",
@@ -39,21 +38,21 @@ const THEMES = {
     logo:     JAZZ_LOGO,
     suitBg:   `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' opacity='0.06'%3E%3Ctext x='4' y='28' font-size='16' fill='%234db8d4' font-family='Arial Black'%3EJA%3C/text%3E%3Ctext x='4' y='60' font-size='16' fill='%23e8971c' font-family='Arial Black'%3EZZ%3C/text%3E%3C/svg%3E")`,
   },
-  wk: {
-    name: "WK",
-    bg:       "#e85d00",
-    surface:  "rgba(255,255,255,0.18)",
-    surface2: "rgba(255,255,255,0.28)",
-    gold:     "#ffffff",
-    text:     "#ffffff",
-    textMid:  "rgba(255,255,255,0.85)",
-    textDim:  "rgba(255,255,255,0.5)",
-    border:   "rgba(255,255,255,0.4)",
-    font:     "'Arial Narrow','Arial',sans-serif",
-    titleFont:"'Arial Narrow','Arial',sans-serif",
-    bgImage:  WK_BG,
-    overlay:  "rgba(200,60,0,0.25)",
-    suitBg:   null,
+  wsw: {
+    name: "WSW",
+    bg:       "#0a0014",
+    surface:  "rgba(127,91,255,0.12)",
+    surface2: "rgba(127,91,255,0.22)",
+    gold:     "#ff2ee6",
+    text:     "#f5f0ff",
+    textMid:  "#b9a9ff",
+    textDim:  "#8a7bb8",
+    border:   "rgba(255,255,255,0.15)",
+    font:     "'Space Grotesk','Helvetica Neue',sans-serif",
+    titleFont:"'Monoton','Space Grotesk',cursive",
+    bgImage:  null,
+    overlay:  "radial-gradient(circle at 15% 20%, rgba(255,0,200,0.32), transparent 40%), radial-gradient(circle at 85% 15%, rgba(0,255,255,0.26), transparent 45%), radial-gradient(circle at 50% 90%, rgba(180,0,255,0.32), transparent 50%)",
+    suitBg:   `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' opacity='0.05'%3E%3Ctext x='4' y='28' font-size='18' fill='%23ff2ee6' font-family='sans-serif'%3E%E2%99%A0%3C/text%3E%3Ctext x='44' y='28' font-size='18' fill='%2300f0ff' font-family='sans-serif'%3E%E2%99%A5%3C/text%3E%3Ctext x='4' y='68' font-size='18' fill='%237f5bff' font-family='sans-serif'%3E%E2%99%A6%3C/text%3E%3Ctext x='44' y='68' font-size='18' fill='%23ff2ee6' font-family='sans-serif'%3E%E2%99%A3%3C/text%3E%3C/svg%3E")`,
   },
   zen: {
     name: "Zen",
@@ -260,6 +259,181 @@ function CountdownScreen({ th, go, supabase, S, friends, events, setEvents, them
             </div>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ── Dobbelstenen (dice roller) ─────────────────────────────────────────────────
+const DICE_PIPS = {
+  1: [[1,1]],
+  2: [[0,0],[2,2]],
+  3: [[0,0],[1,1],[2,2]],
+  4: [[0,0],[0,2],[2,0],[2,2]],
+  5: [[0,0],[0,2],[1,1],[2,0],[2,2]],
+  6: [[0,0],[0,2],[1,0],[1,2],[2,0],[2,2]],
+};
+
+function DieFace({ value, th, size=56 }) {
+  const active = value ? DICE_PIPS[value] : [];
+  return (
+    <div style={{
+      width:size, height:size, borderRadius:size*0.18, boxSizing:"border-box",
+      display:"grid", gridTemplateColumns:"repeat(3,1fr)", gridTemplateRows:"repeat(3,1fr)",
+      padding:size*0.14,
+      background: value ? "#f5f5f0" : "transparent",
+      border: value ? "1px solid rgba(0,0,0,0.15)" : `1px dashed ${th.border}`,
+      boxShadow: value ? "0 2px 6px rgba(0,0,0,0.3)" : "none",
+    }}>
+      {Array.from({length:9}).map((_,i)=>{
+        const r=Math.floor(i/3), c=i%3;
+        const on = active.some(([ar,ac])=>ar===r&&ac===c);
+        return (
+          <div key={i} style={{display:"flex",alignItems:"center",justifyContent:"center"}}>
+            {on && <div style={{width:"62%",height:"62%",borderRadius:"50%",background:"#1a1a1a"}}/>}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function DiceScreen({ th, go, S, themeName }) {
+  const [diceCount, setDiceCount] = useState(5);
+  const [values, setValues]       = useState(Array(5).fill(null));
+  const [locked, setLocked]       = useState(Array(5).fill(false));
+  const [rolling, setRolling]     = useState(false);
+  const [hasRolled, setHasRolled] = useState(false);
+  const [rollCount, setRollCount] = useState(0);
+
+  function setCount(n) {
+    if (rolling) return;
+    setDiceCount(n);
+    setValues(Array(n).fill(null));
+    setLocked(Array(n).fill(false));
+    setHasRolled(false);
+    setRollCount(0);
+  }
+
+  function roll() {
+    if (rolling) return;
+    setRolling(true);
+    setTimeout(()=>{
+      setValues(prev => prev.map((v,i) => (hasRolled && locked[i]) ? v : (1+Math.floor(Math.random()*6))));
+      setHasRolled(true);
+      setRolling(false);
+      setRollCount(c=>c+1);
+    }, 650);
+  }
+
+  function toggleLock(i, e) {
+    e.stopPropagation();
+    if (!hasRolled || rolling) return;
+    setLocked(prev => prev.map((l,idx)=> idx===i ? !l : l));
+  }
+
+  function newTurn() {
+    if (rolling) return;
+    setLocked(Array(diceCount).fill(false));
+    setHasRolled(false);
+    setRollCount(0);
+  }
+
+  const dieSize = diceCount===1 ? 76 : diceCount===3 ? 54 : 40;
+  const zenStyle = `@font-face{font-family:'CooperHewitt';src:url('/CooperHewitt-Thin.otf') format('opentype');font-weight:300;}body{background-color:#f7f3ea!important}`;
+
+  return (
+    <div style={{...S.app,minHeight:"100dvh"}}>
+      {themeName==="zen"&&<><style>{zenStyle}</style><ZenPaper/></>}
+      <style>{`
+        @keyframes diceRollShake {
+          0%   { transform: translate(0,0) rotate(0deg); }
+          20%  { transform: translate(-5px,-3px) rotate(-9deg); }
+          40%  { transform: translate(4px,3px) rotate(7deg); }
+          60%  { transform: translate(-4px,3px) rotate(-6deg); }
+          80%  { transform: translate(4px,-2px) rotate(5deg); }
+          100% { transform: translate(0,0) rotate(0deg); }
+        }
+        @keyframes diceDomePress { 0%{transform:scale(1)} 40%{transform:scale(0.95)} 100%{transform:scale(1)} }
+        .dice-roll-shake { animation: diceRollShake 0.13s ease-in-out infinite; }
+        .dice-dome-press { animation: diceDomePress 0.65s ease; }
+      `}</style>
+      {S.overlay&&<div style={S.overlay}/>}
+      <div style={S.wrap}>
+        <div style={S.header}>
+          <button style={S.backBtn} onClick={()=>go("home")}>‹</button>
+          <h2 style={S.title}>Dobbelstenen</h2>
+        </div>
+
+        <div style={{padding:"8px 16px 96px",textAlign:"center"}}>
+          <p style={{...S.label,textAlign:"center",margin:"16px 0 8px"}}>Aantal dobbelstenen</p>
+          <div style={{display:"flex",justifyContent:"center",gap:8,marginBottom:28}}>
+            {[1,3,5].map(n=>(
+              <button key={n} onClick={()=>setCount(n)} style={{
+                width:52,height:44,borderRadius:8,cursor:"pointer",fontSize:16,fontWeight:700,
+                fontFamily:th.font,
+                background: diceCount===n ? th.gold : "transparent",
+                color: diceCount===n ? th.bg : th.textDim,
+                border:`1px solid ${diceCount===n?th.gold:th.border}`,
+              }}>{n}</button>
+            ))}
+          </div>
+
+          <div
+            onClick={roll}
+            className={rolling?"dice-dome-press":undefined}
+            style={{
+              width:240,height:240,borderRadius:"50%",margin:"0 auto 18px",cursor:rolling?"default":"pointer",
+              background:`radial-gradient(circle at 35% 28%, ${th.surface2}, ${th.surface} 60%, ${th.bg} 100%)`,
+              border:`2px solid ${th.border}`,
+              boxShadow:`inset 0 10px 26px rgba(0,0,0,0.35), inset 0 -6px 14px rgba(255,255,255,0.06), 0 0 0 6px ${th.surface2}`,
+              display:"flex",alignItems:"center",justifyContent:"center",position:"relative",
+              userSelect:"none",
+            }}
+          >
+            <div style={{display:"flex",flexWrap:"wrap",gap:8,justifyContent:"center",alignItems:"center",maxWidth:170}}>
+              {values.map((v,i)=>{
+                const shaking = rolling && !locked[i];
+                return (
+                  <button
+                    key={i}
+                    onClick={(e)=>toggleLock(i,e)}
+                    className={shaking?"dice-roll-shake":undefined}
+                    style={{
+                      background:"transparent", border:"none", padding:0,
+                      cursor: hasRolled && !rolling ? "pointer" : "default",
+                      filter: locked[i] ? `drop-shadow(0 0 7px ${th.gold})` : "none",
+                    }}
+                  >
+                    <DieFace value={shaking?null:v} th={th} size={dieSize}/>
+                  </button>
+                );
+              })}
+            </div>
+            {!hasRolled && !rolling && (
+              <div style={{position:"absolute",bottom:20,left:0,right:0,textAlign:"center",fontSize:11,letterSpacing:2,textTransform:"uppercase",color:th.textDim}}>
+                Tik om te gooien
+              </div>
+            )}
+          </div>
+
+          <button style={{...S.primary,maxWidth:260,margin:"0 auto 10px"}} onClick={roll} disabled={rolling}>
+            {rolling ? "…" : hasRolled ? "Gooi opnieuw 🎲" : "Gooien 🎲"}
+          </button>
+
+          {hasRolled && (
+            <p style={{color:th.textDim,fontSize:12,margin:"10px auto 0",lineHeight:1.5,maxWidth:320}}>
+              Tik op een dobbelsteen om 'm vast te houden voor de volgende worp — handig voor Yahtzee.
+            </p>
+          )}
+
+          {hasRolled && (
+            <div style={{display:"flex",justifyContent:"center",gap:16,alignItems:"center",marginTop:14}}>
+              <span style={{color:th.textDim,fontSize:12}}>Worp {rollCount}</span>
+              <button style={{...S.secondary,width:"auto",padding:"9px 16px"}} onClick={newTurn}>Nieuwe beurt</button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -974,18 +1148,20 @@ export default function App() {
     const menuItems = [
       { label:"Bollen",     sub: liveB ? "LIVE — Tik om terug te gaan" : "Wouter heeft ook 1 keer gewonnen",
         action:()=>{ if(liveB){joinLiveGame(liveB);}else{setGameMode("bollen");setGamePlayers([]);go("selectPlayers");} },
-        accentBorder: themeName==="wk"?"3px solid #DD0000":null, live: !!liveB },
+        accentBorder: themeName==="wsw"?"3px solid #ff2ee6":null, live: !!liveB },
       { label:"Toepen",     sub: liveT ? "LIVE — Tik om terug te gaan" : "4 kaarten p.p. en aan het einde wint Ivar",
         action:()=>{ if(liveT){joinLiveGame(liveT);}else{setGameMode("toepen");setGamePlayers([]);go("selectPlayers");} },
-        accentBorder: themeName==="wk"?"3px solid #ffffff":null, live: !!liveT },
-      { label:"Spelregels", sub:"Regels voor Bollen en Toepen",     action:()=>go("spelregels"), accentBorder: themeName==="wk"?"3px solid #003399":null },
+        accentBorder: themeName==="wsw"?"3px solid #00f0ff":null, live: !!liveT },
+      { label:"Spelregels", sub:"Regels voor Bollen en Toepen",     action:()=>go("spelregels"), accentBorder: themeName==="wsw"?"3px solid #7f5bff":null },
       { label:"Vrienden",   sub: currentGroup ? `${groupFriends.length} vrienden · ${currentGroup.name}` : `${friends.length} vrienden`, action:()=>go("friends") },
       { label:"Polls",      sub: currentGroup ? `Polls voor ${currentGroup.name}` : "Stem op vragen van de groep", action:()=>go("polls") },
       { label:"Count Down", sub: nextCountdownInfo(), action:()=>go("countdown") },
+      { label:"Dobbelstenen", sub:"Gooi 1, 3 of 5 dobbelstenen — hou ze vast voor Yahtzee", action:()=>go("dice") },
     ];
     const LogoBlock = (
       <div style={{textAlign:"center",padding: isIPad ? "40px 32px 24px" : "32px 24px 20px"}}>
-        <div style={{width:isIPad?120:100,height:isIPad?120:100,margin:"0 auto 18px",borderRadius:18,border:`1px solid ${th.border}`,overflow:"hidden",boxShadow:themeName==="zen"?"none":"0 0 24px rgba(207,157,123,0.12)",background:th.surface}}>
+        {themeName==="wsw"&&<style>{`@keyframes wswTitleGlow{0%{background-position:0% center}100%{background-position:300% center}}@media (prefers-reduced-motion: reduce){.wsw-title-glow{animation:none!important}}`}</style>}
+        <div style={{width:isIPad?120:100,height:isIPad?120:100,margin:"0 auto 18px",borderRadius:18,border:`1px solid ${th.border}`,overflow:"hidden",boxShadow:themeName==="zen"?"none":themeName==="wsw"?"0 0 28px rgba(255,46,230,0.35), 0 0 50px rgba(0,240,255,0.18)":"0 0 24px rgba(207,157,123,0.12)",background:th.surface}}>
           {themeName==="zen"?(
             <svg viewBox="0 0 100 100" style={{width:"100%",height:"100%"}} xmlns="http://www.w3.org/2000/svg">
               <rect width="100" height="100" fill="#faf7f2"/>
@@ -997,11 +1173,37 @@ export default function App() {
               <text x="13" y="22" fontSize="10" fill="#8b1a1a" fontFamily="Georgia,serif" fontWeight="700">A</text>
               <text x="87" y="93" fontSize="10" fill="#8b1a1a" fontFamily="Georgia,serif" fontWeight="700" textAnchor="middle" transform="rotate(180,87,93)">A</text>
             </svg>
+          ):themeName==="wsw"?(
+            <svg viewBox="0 0 100 100" style={{width:"100%",height:"100%"}} xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <radialGradient id="wswLogoBg" cx="50%" cy="42%" r="70%">
+                  <stop offset="0%" stopColor="#2a0845"/>
+                  <stop offset="100%" stopColor="#0a0014"/>
+                </radialGradient>
+                <linearGradient id="wswLogoStroke" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#ff2ee6"/>
+                  <stop offset="50%" stopColor="#7f5bff"/>
+                  <stop offset="100%" stopColor="#00f0ff"/>
+                </linearGradient>
+                <filter id="wswLogoGlow" x="-60%" y="-60%" width="220%" height="220%">
+                  <feGaussianBlur stdDeviation="3" result="blur"/>
+                  <feMerge>
+                    <feMergeNode in="blur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+              </defs>
+              <rect width="100" height="100" fill="url(#wswLogoBg)"/>
+              <text x="50" y="70" fontSize="58" textAnchor="middle" fill="url(#wswLogoStroke)" fontFamily="Arial,sans-serif" filter="url(#wswLogoGlow)">♠</text>
+              <circle cx="23" cy="21" r="2.2" fill="#00f0ff" filter="url(#wswLogoGlow)"/>
+              <circle cx="80" cy="29" r="1.6" fill="#ff2ee6" filter="url(#wswLogoGlow)"/>
+              <circle cx="73" cy="79" r="1.8" fill="#7f5bff" filter="url(#wswLogoGlow)"/>
+            </svg>
           ):(
             <img src={themeName==="jazz"?"/Logo-Jazz.JPG":"/Logo-Normal.jpg"} alt="logo" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
           )}
         </div>
-        <h1 style={{fontSize:isIPad?40:34,fontWeight:700,color:th.gold,letterSpacing:6,textTransform:"uppercase",margin:"0 0 4px",fontFamily:th.titleFont}}>Cards</h1>
+        <h1 className={themeName==="wsw"?"wsw-title-glow":undefined} style={{fontSize:isIPad?40:34,fontWeight:700,letterSpacing:6,textTransform:"uppercase",margin:"0 0 4px",fontFamily:th.titleFont,...(themeName==="wsw"?{background:"linear-gradient(90deg,#ff2ee6,#7f5bff,#00f0ff,#ff2ee6)",backgroundSize:"300% auto",WebkitBackgroundClip:"text",backgroundClip:"text",color:"transparent",textShadow:"0 0 30px rgba(255,46,230,0.45)",animation:"wswTitleGlow 6s linear infinite"}:{color:th.gold})}}>Cards</h1>
         <p style={{color:th.textMid,fontSize:11,letterSpacing:3,textTransform:"uppercase",margin:0}}>Kaartspellen</p>
         <ThemeSwitcher/>
       </div>
@@ -1300,7 +1502,7 @@ export default function App() {
                         const dBid=hasBid?`(${game.bids[bidIdx]})`:null;
                         return (
                           <td key={pi} style={{textAlign:"center",padding:"4px 2px",fontWeight:sc!==null?700:400,color:sc===null?(dBid?th.gold:"rgba(255,255,255,0.15)"):sc<0?"#8a3030":th.gold,fontSize:15}}>
-                            {sc!==null?(sc<0?(themeName==="wk"?"⚽":"●"):sc):(dBid||"·")}
+                            {sc!==null?(sc<0?(themeName==="wsw"?"✨":"●"):sc):(dBid||"·")}
                           </td>
                         );
                       })}
@@ -1408,7 +1610,7 @@ export default function App() {
               <Avatar player={richPlayer(p)} size={40} th={th}/>
               <div style={{flex:1}}>
                 <div style={{fontWeight:700,fontSize:15,color:rank===0?th.gold:th.text,letterSpacing:1}}>{p.name}</div>
-                <div style={{fontSize:10,color:th.textDim,fontFamily:"monospace",marginTop:2}}>{p.scores?p.scores.map(s=>s===null?"·":s<0?(themeName==="wk"?"⚽":"●"):s).join(" "):""}</div>
+                <div style={{fontSize:10,color:th.textDim,fontFamily:"monospace",marginTop:2}}>{p.scores?p.scores.map(s=>s===null?"·":s<0?(themeName==="wsw"?"✨":"●"):s).join(" "):""}</div>
               </div>
               <div style={{fontWeight:800,fontSize:22,color:rank===0?th.gold:th.text}}>{p.total}</div>
             </div>
@@ -1821,6 +2023,10 @@ export default function App() {
 
   if (screen==="countdown") return (
     <CountdownScreen th={th} go={go} supabase={supabase} S={S} friends={friends} events={events} setEvents={setEvents} themeName={themeName}/>
+  );
+
+  if (screen==="dice") return (
+    <DiceScreen th={th} go={go} S={S} themeName={themeName}/>
   );
 
   return null;
