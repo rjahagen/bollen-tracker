@@ -299,31 +299,74 @@ function DieFace({ value, th, size=56 }) {
 }
 
 function DiceScreen({ th, go, S, themeName }) {
-  const [diceCount, setDiceCount] = useState(5);
-  const [values, setValues]       = useState(Array(5).fill(null));
-  const [locked, setLocked]       = useState(Array(5).fill(false));
-  const [rolling, setRolling]     = useState(false);
-  const [hasRolled, setHasRolled] = useState(false);
-  const [rollCount, setRollCount] = useState(0);
+  const [diceCount, setDiceCount]     = useState(5);
+  const [values, setValues]           = useState(Array(5).fill(null));
+  const [locked, setLocked]           = useState(Array(5).fill(false));
+  const [rollingDice, setRollingDice] = useState(Array(5).fill(false)); // per-die: still tumbling
+  const [justLanded, setJustLanded]   = useState(Array(5).fill(false)); // per-die: brief landing pop
+  const [rolling, setRolling]         = useState(false); // any die still in motion
+  const [hasRolled, setHasRolled]     = useState(false);
+  const [rollCount, setRollCount]     = useState(0);
+  const timers = useRef({ intervals: [], timeouts: [] });
+
+  function clearTimers() {
+    timers.current.intervals.forEach(id=>clearInterval(id));
+    timers.current.timeouts.forEach(id=>clearTimeout(id));
+    timers.current = { intervals: [], timeouts: [] };
+  }
+  useEffect(()=>clearTimers, []);
 
   function setCount(n) {
     if (rolling) return;
+    clearTimers();
     setDiceCount(n);
     setValues(Array(n).fill(null));
     setLocked(Array(n).fill(false));
+    setRollingDice(Array(n).fill(false));
+    setJustLanded(Array(n).fill(false));
     setHasRolled(false);
     setRollCount(0);
   }
 
   function roll() {
     if (rolling) return;
+    clearTimers();
+    const heldSnapshot = hasRolled ? locked : Array(diceCount).fill(false);
     setRolling(true);
-    setTimeout(()=>{
-      setValues(prev => prev.map((v,i) => (hasRolled && locked[i]) ? v : (1+Math.floor(Math.random()*6))));
-      setHasRolled(true);
+    setRollingDice(heldSnapshot.map(l=>!l));
+    setJustLanded(Array(diceCount).fill(false));
+
+    let maxDelay = 0;
+    for (let i=0; i<diceCount; i++) {
+      if (heldSnapshot[i]) continue;
+      // fast flicker through random faces while this die tumbles
+      const intervalId = setInterval(()=>{
+        setValues(prev => { const n=[...prev]; n[i]=1+Math.floor(Math.random()*6); return n; });
+      }, 70);
+      timers.current.intervals.push(intervalId);
+
+      // each die settles at a slightly different moment, like real dice coming to rest
+      const delay = 480 + i*110 + Math.random()*180;
+      maxDelay = Math.max(maxDelay, delay);
+      const settleId = setTimeout(()=>{
+        clearInterval(intervalId);
+        setValues(prev => { const n=[...prev]; n[i]=1+Math.floor(Math.random()*6); return n; });
+        setRollingDice(prev => { const n=[...prev]; n[i]=false; return n; });
+        setJustLanded(prev => { const n=[...prev]; n[i]=true; return n; });
+        const popId = setTimeout(()=>{
+          setJustLanded(prev => { const n=[...prev]; n[i]=false; return n; });
+        }, 320);
+        timers.current.timeouts.push(popId);
+      }, delay);
+      timers.current.timeouts.push(settleId);
+    }
+
+    const doneId = setTimeout(()=>{
       setRolling(false);
+      setHasRolled(true);
       setRollCount(c=>c+1);
-    }, 650);
+    }, maxDelay + 120);
+    timers.current.timeouts.push(doneId);
   }
 
   function toggleLock(i, e) {
@@ -346,17 +389,32 @@ function DiceScreen({ th, go, S, themeName }) {
     <div style={{...S.app,minHeight:"100dvh"}}>
       {themeName==="zen"&&<><style>{zenStyle}</style><ZenPaper/></>}
       <style>{`
-        @keyframes diceRollShake {
-          0%   { transform: translate(0,0) rotate(0deg); }
-          20%  { transform: translate(-5px,-3px) rotate(-9deg); }
-          40%  { transform: translate(4px,3px) rotate(7deg); }
-          60%  { transform: translate(-4px,3px) rotate(-6deg); }
-          80%  { transform: translate(4px,-2px) rotate(5deg); }
-          100% { transform: translate(0,0) rotate(0deg); }
+        @keyframes diceDomeTumble {
+          0%   { transform: scale(1) rotate(0deg); }
+          20%  { transform: scale(0.97) rotate(-2deg); }
+          40%  { transform: scale(1.02) rotate(2deg); }
+          60%  { transform: scale(0.98) rotate(-1.5deg); }
+          80%  { transform: scale(1.01) rotate(1.5deg); }
+          100% { transform: scale(1) rotate(0deg); }
         }
-        @keyframes diceDomePress { 0%{transform:scale(1)} 40%{transform:scale(0.95)} 100%{transform:scale(1)} }
-        .dice-roll-shake { animation: diceRollShake 0.13s ease-in-out infinite; }
-        .dice-dome-press { animation: diceDomePress 0.65s ease; }
+        @keyframes dieTumble {
+          0%   { transform: translateY(0) rotate(0deg) scale(1); }
+          20%  { transform: translateY(-7px) rotate(80deg) scale(0.9); }
+          45%  { transform: translateY(3px) rotate(170deg) scale(1.06); }
+          70%  { transform: translateY(-4px) rotate(260deg) scale(0.94); }
+          100% { transform: translateY(0) rotate(360deg) scale(1); }
+        }
+        @keyframes diePop {
+          0%   { transform: scale(1.4); }
+          55%  { transform: scale(0.88); }
+          100% { transform: scale(1); }
+        }
+        .dice-dome-rolling { animation: diceDomeTumble 0.5s ease-in-out infinite; }
+        .dice-tumble { animation: dieTumble 0.32s linear infinite; }
+        .dice-pop { animation: diePop 0.32s cubic-bezier(.34,1.56,.64,1); }
+        @media (prefers-reduced-motion: reduce) {
+          .dice-dome-rolling, .dice-tumble, .dice-pop { animation: none!important; }
+        }
       `}</style>
       {S.overlay&&<div style={S.overlay}/>}
       <div style={S.wrap}>
@@ -381,7 +439,7 @@ function DiceScreen({ th, go, S, themeName }) {
 
           <div
             onClick={roll}
-            className={rolling?"dice-dome-press":undefined}
+            className={rolling?"dice-dome-rolling":undefined}
             style={{
               width:240,height:240,borderRadius:"50%",margin:"0 auto 18px",cursor:rolling?"default":"pointer",
               background:`radial-gradient(circle at 35% 28%, ${th.surface2}, ${th.surface} 60%, ${th.bg} 100%)`,
@@ -393,19 +451,19 @@ function DiceScreen({ th, go, S, themeName }) {
           >
             <div style={{display:"flex",flexWrap:"wrap",gap:8,justifyContent:"center",alignItems:"center",maxWidth:170}}>
               {values.map((v,i)=>{
-                const shaking = rolling && !locked[i];
+                const cls = rollingDice[i] ? "dice-tumble" : justLanded[i] ? "dice-pop" : undefined;
                 return (
                   <button
                     key={i}
                     onClick={(e)=>toggleLock(i,e)}
-                    className={shaking?"dice-roll-shake":undefined}
+                    className={cls}
                     style={{
                       background:"transparent", border:"none", padding:0,
                       cursor: hasRolled && !rolling ? "pointer" : "default",
                       filter: locked[i] ? `drop-shadow(0 0 7px ${th.gold})` : "none",
                     }}
                   >
-                    <DieFace value={shaking?null:v} th={th} size={dieSize}/>
+                    <DieFace value={v} th={th} size={dieSize}/>
                   </button>
                 );
               })}
