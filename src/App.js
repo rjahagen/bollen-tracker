@@ -984,7 +984,8 @@ export default function App() {
     ];
     const LogoBlock = (
       <div style={{textAlign:"center",padding: isIPad ? "40px 32px 24px" : "32px 24px 20px"}}>
-        <div style={{width:isIPad?120:100,height:isIPad?120:100,margin:"0 auto 18px",borderRadius:18,border:`1px solid ${th.border}`,overflow:"hidden",boxShadow:themeName==="zen"?"none":"0 0 24px rgba(207,157,123,0.12)",background:th.surface}}>
+        {themeName==="wsw"&&<style>{`@keyframes wswTitleGlow{0%{background-position:0% center}100%{background-position:300% center}}@media (prefers-reduced-motion: reduce){.wsw-title-glow{animation:none!important}}`}</style>}
+        <div style={{width:isIPad?120:100,height:isIPad?120:100,margin:"0 auto 18px",borderRadius:18,border:`1px solid ${th.border}`,overflow:"hidden",boxShadow:themeName==="zen"?"none":themeName==="wsw"?"0 0 28px rgba(255,46,230,0.35), 0 0 50px rgba(0,240,255,0.18)":"0 0 24px rgba(207,157,123,0.12)",background:th.surface}}>
           {themeName==="zen"?(
             <svg viewBox="0 0 100 100" style={{width:"100%",height:"100%"}} xmlns="http://www.w3.org/2000/svg">
               <rect width="100" height="100" fill="#faf7f2"/>
@@ -996,11 +997,37 @@ export default function App() {
               <text x="13" y="22" fontSize="10" fill="#8b1a1a" fontFamily="Georgia,serif" fontWeight="700">A</text>
               <text x="87" y="93" fontSize="10" fill="#8b1a1a" fontFamily="Georgia,serif" fontWeight="700" textAnchor="middle" transform="rotate(180,87,93)">A</text>
             </svg>
+          ):themeName==="wsw"?(
+            <svg viewBox="0 0 100 100" style={{width:"100%",height:"100%"}} xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <radialGradient id="wswLogoBg" cx="50%" cy="42%" r="70%">
+                  <stop offset="0%" stopColor="#2a0845"/>
+                  <stop offset="100%" stopColor="#0a0014"/>
+                </radialGradient>
+                <linearGradient id="wswLogoStroke" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#ff2ee6"/>
+                  <stop offset="50%" stopColor="#7f5bff"/>
+                  <stop offset="100%" stopColor="#00f0ff"/>
+                </linearGradient>
+                <filter id="wswLogoGlow" x="-60%" y="-60%" width="220%" height="220%">
+                  <feGaussianBlur stdDeviation="3" result="blur"/>
+                  <feMerge>
+                    <feMergeNode in="blur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+              </defs>
+              <rect width="100" height="100" fill="url(#wswLogoBg)"/>
+              <text x="50" y="70" fontSize="58" textAnchor="middle" fill="url(#wswLogoStroke)" fontFamily="Arial,sans-serif" filter="url(#wswLogoGlow)">♠</text>
+              <circle cx="23" cy="21" r="2.2" fill="#00f0ff" filter="url(#wswLogoGlow)"/>
+              <circle cx="80" cy="29" r="1.6" fill="#ff2ee6" filter="url(#wswLogoGlow)"/>
+              <circle cx="73" cy="79" r="1.8" fill="#7f5bff" filter="url(#wswLogoGlow)"/>
+            </svg>
           ):(
             <img src={themeName==="jazz"?"/Logo-Jazz.JPG":"/Logo-Normal.jpg"} alt="logo" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
           )}
         </div>
-        <h1 style={{fontSize:isIPad?40:34,fontWeight:700,color:th.gold,letterSpacing:6,textTransform:"uppercase",margin:"0 0 4px",fontFamily:th.titleFont}}>Cards</h1>
+        <h1 className={themeName==="wsw"?"wsw-title-glow":undefined} style={{fontSize:isIPad?40:34,fontWeight:700,letterSpacing:6,textTransform:"uppercase",margin:"0 0 4px",fontFamily:th.titleFont,...(themeName==="wsw"?{background:"linear-gradient(90deg,#ff2ee6,#7f5bff,#00f0ff,#ff2ee6)",backgroundSize:"300% auto",WebkitBackgroundClip:"text",backgroundClip:"text",color:"transparent",textShadow:"0 0 30px rgba(255,46,230,0.45)",animation:"wswTitleGlow 6s linear infinite"}:{color:th.gold})}}>Cards</h1>
         <p style={{color:th.textMid,fontSize:11,letterSpacing:3,textTransform:"uppercase",margin:0}}>Kaartspellen</p>
         <ThemeSwitcher/>
       </div>
