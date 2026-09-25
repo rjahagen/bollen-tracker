@@ -18,35 +18,67 @@ function dbWedge(cx, cy, rInner, rOuter, startAngle, endAngle) {
   return `M ${p1.x} ${p1.y} A ${rOuter} ${rOuter} 0 ${largeArc} 1 ${p2.x} ${p2.y} L ${p3.x} ${p3.y} A ${rInner} ${rInner} 0 ${largeArc} 0 ${p4.x} ${p4.y} Z`;
 }
 
+const DART_HILITE = "#ffd23f"; // fixed high-contrast highlight — stays visible in every theme, incl. zen (th.gold is black there)
+
 function DartBoard({ target, th, size=260 }) {
   const cx=130, cy=130;
   const R = { edge:116, dblOuter:116, dblInner:106, singleOuterOuter:106, singleOuterInner:64, trebleOuter:64, trebleInner:56, singleInnerOuter:56, singleInnerInner:16, bullOuter:16, bullInner:7 };
   const dark="#14161c", light="#e9e2d0", red="#c22a3e", green="#0c5c3c";
+  const labelR = 127;
   return (
-    <svg viewBox="0 0 260 260" style={{width:size,height:size,display:"block"}}>
-      <circle cx={cx} cy={cy} r={122} fill="#05070a"/>
-      {DARTBOARD_ORDER.map((num,i)=>{
-        const center = i*18, start = center-9, end = center+9;
-        const alt = i%2===1;
-        const base = alt ? dark : light;
-        const ring = alt ? green : red;
-        const isTarget = target===num;
-        const label = dbPolar(cx, cy, 135, center);
-        return (
-          <g key={num}>
-            <path d={dbWedge(cx,cy,R.singleOuterInner,R.singleOuterOuter,start,end)} fill={base}/>
-            <path d={dbWedge(cx,cy,R.dblInner,R.dblOuter,start,end)} fill={ring}/>
-            <path d={dbWedge(cx,cy,R.singleInnerInner,R.singleInnerOuter,start,end)} fill={base}/>
-            <path d={dbWedge(cx,cy,R.trebleInner,R.trebleOuter,start,end)} fill={ring}/>
-            {isTarget && <path d={dbWedge(cx,cy,R.singleInnerInner,R.dblOuter,start,end)} fill={th.gold} opacity={0.32}/>}
-            <text x={label.x} y={label.y} textAnchor="middle" dominantBaseline="middle" fontSize={13} fontWeight={700} fill={isTarget?th.gold:"#c9c4b8"} fontFamily="Arial,sans-serif">{num}</text>
-          </g>
-        );
-      })}
-      <circle cx={cx} cy={cy} r={R.bullOuter} fill={green}/>
-      <circle cx={cx} cy={cy} r={R.bullInner} fill={red}/>
-      {target==="Bull" && <circle cx={cx} cy={cy} r={R.bullOuter+5} fill="none" stroke={th.gold} strokeWidth={3.5} opacity={0.95}/>}
-    </svg>
+    <>
+      <style>{`
+        @keyframes dartHilitePulse { 0%,100% { opacity:0.9; } 50% { opacity:0.55; } }
+        .dart-hilite { animation: dartHilitePulse 1.3s ease-in-out infinite; }
+        @media (prefers-reduced-motion: reduce) { .dart-hilite { animation:none; } }
+      `}</style>
+      <svg viewBox="0 0 260 260" style={{width:size,height:size,display:"block"}}>
+        <defs>
+          <filter id="dartHiliteGlow" x="-80%" y="-80%" width="260%" height="260%">
+            <feGaussianBlur stdDeviation="4.5" result="blur"/>
+            <feMerge>
+              <feMergeNode in="blur"/>
+              <feMergeNode in="blur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+        <circle cx={cx} cy={cy} r={122} fill="#05070a"/>
+        {DARTBOARD_ORDER.map((num,i)=>{
+          const center = i*18, start = center-9, end = center+9;
+          const alt = i%2===1;
+          const base = alt ? dark : light;
+          const ring = alt ? green : red;
+          const isTarget = target===num;
+          const label = dbPolar(cx, cy, labelR, center);
+          return (
+            <g key={num}>
+              <path d={dbWedge(cx,cy,R.singleOuterInner,R.singleOuterOuter,start,end)} fill={base}/>
+              <path d={dbWedge(cx,cy,R.dblInner,R.dblOuter,start,end)} fill={ring}/>
+              <path d={dbWedge(cx,cy,R.singleInnerInner,R.singleInnerOuter,start,end)} fill={base}/>
+              <path d={dbWedge(cx,cy,R.trebleInner,R.trebleOuter,start,end)} fill={ring}/>
+              {isTarget && (
+                <path className="dart-hilite" filter="url(#dartHiliteGlow)"
+                  d={dbWedge(cx,cy,R.singleInnerInner,R.dblOuter,start,end)}
+                  fill={DART_HILITE} opacity={0.55} stroke={DART_HILITE} strokeWidth={2.5}/>
+              )}
+              {isTarget && (
+                <circle className="dart-hilite" cx={label.x} cy={label.y} r={12} fill={DART_HILITE} filter="url(#dartHiliteGlow)"/>
+              )}
+              <text x={label.x} y={label.y} textAnchor="middle" dominantBaseline="middle"
+                fontSize={isTarget?15:13} fontWeight={isTarget?900:700}
+                fill={isTarget?"#1a1206":"#c9c4b8"} fontFamily="Arial,sans-serif">{num}</text>
+            </g>
+          );
+        })}
+        <circle cx={cx} cy={cy} r={R.bullOuter} fill={green}/>
+        <circle cx={cx} cy={cy} r={R.bullInner} fill={red}/>
+        {target==="Bull" && (
+          <circle className="dart-hilite" cx={cx} cy={cy} r={R.bullOuter+6} fill="none"
+            stroke={DART_HILITE} strokeWidth={4.5} filter="url(#dartHiliteGlow)"/>
+        )}
+      </svg>
+    </>
   );
 }
 
