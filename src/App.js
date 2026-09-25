@@ -551,7 +551,7 @@ export default function App() {
   );
 
   if (screen==="darts") return (
-    <DartsScreen th={th} go={go} S={S} themeName={themeName}/>
+    <DartsScreen th={th} go={go} S={S} themeName={themeName} groupFriends={groupFriends}/>
   );
 
   return null;
