@@ -59,6 +59,7 @@ export default function HomeScreen({ th, S, themeName, setThemeName, isIPad, cur
       action:()=>{ if(liveT){joinLiveGame(liveT);}else{setGameMode("toepen");setGamePlayers([]);go("selectPlayers");} },
       accentBorder: themeName==="wsw"?"3px solid #00f0ff":null, live: !!liveT },
     { label:"Dobbelstenen", sub:"Gooi 1, 3 of 5 dobbelstenen — hou ze vast voor Yahtzee", action:()=>go("dice") },
+    { label:"Around The World", sub:"Dartbord — raak 1 t/m 20 en de bull, om de beurt", action:()=>go("darts") },
     { label:"Spelregels", sub:"Regels voor Bollen en Toepen",     action:()=>go("spelregels"), accentBorder: themeName==="wsw"?"3px solid #7f5bff":null },
     { label:"Vrienden",   sub: currentGroup ? `${groupFriends.length} vrienden · ${currentGroup.name}` : `${friends.length} vrienden`, action:()=>go("friends") },
     { label:"Polls",      sub: currentGroup ? `Polls voor ${currentGroup.name}` : "Stem op vragen van de groep", action:()=>go("polls") },
