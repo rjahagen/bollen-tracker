@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from './supabase';
-import { THEMES, ROUNDS, PRESET_FRIENDS } from './constants';
+import { THEMES, ROUND_SETS, PRESET_FRIENDS } from './constants';
 import { loadS, saveS, slimPlayer } from './utils';
 import Wrap from './components/Wrap';
 
@@ -37,6 +37,7 @@ export default function App() {
   const [friendStats, setFriendStats] = useState(null);
   const [groups, setGroups]           = useState([]);
   const [currentGroupId, setCurrentGroupId] = useState(()=>loadS("cards_current_group","group_jgls"));
+  const [bollenRounds, setBollenRounds] = useState(()=>loadS("cards_bollen_rounds",17));
   const [groupMembers, setGroupMembers] = useState({});
   const [events, setEvents]           = useState([]);
   const [currentPlayerId, setCurrentPlayerId] = useState(()=>loadS("cards_current_player",null));
@@ -52,6 +53,7 @@ export default function App() {
   const currentPlayerIdRef = useRef(null);
 
   useEffect(()=>{ saveS("cards_theme", themeName); }, [themeName]);
+  useEffect(()=>{ saveS("cards_bollen_rounds", bollenRounds); }, [bollenRounds]);
   useEffect(()=>{ saveS("cards_current_group", currentGroupId); }, [currentGroupId]);
   useEffect(()=>{
     if (!currentPlayerId || groups.length===0) return;
@@ -175,7 +177,7 @@ export default function App() {
         if (!isControllerRef.current) {
           setGame(upd.state);
           const gs=upd.state;
-          if (gs?.mode==='bollen') setScreen(gs.roundIdx>=17?'gameOver':'game');
+          if (gs?.mode==='bollen') setScreen(gs.roundIdx>=(gs.rounds?.length||17)?'gameOver':'game');
           else if (gs?.mode==='toepen') setScreen(gs.winner?'toepOver':'toepen');
         }
       })
@@ -190,7 +192,7 @@ export default function App() {
       if (!data.is_active) { clearInterval(timer); return; }
       setGame(data.state);
       const gs=data.state;
-      if (gs?.mode==='bollen') setScreen(gs.roundIdx>=17?'gameOver':'game');
+      if (gs?.mode==='bollen') setScreen(gs.roundIdx>=(gs.rounds?.length||17)?'gameOver':'game');
       else if (gs?.mode==='toepen') setScreen(gs.winner?'toepOver':'toepen');
     },3000);
     return ()=>clearInterval(timer);
@@ -262,7 +264,7 @@ export default function App() {
     setGame(data.state);
     setGameMode(data.game_type);
     const gs=data.state;
-    if (gs?.mode==='bollen') go(gs.roundIdx>=17?'gameOver':'game');
+    if (gs?.mode==='bollen') go(gs.roundIdx>=(gs.rounds?.length||17)?'gameOver':'game');
     else if (gs?.mode==='toepen') go(gs.winner?'toepOver':'toepen');
   }
   function syncLiveGame(state) {
@@ -284,7 +286,7 @@ export default function App() {
     setGame(data.state);
     latestGameRef.current = data.state;
     const gs = data.state;
-    if (gs?.mode==='bollen') setScreen(gs.roundIdx>=17?'gameOver':'game');
+    if (gs?.mode==='bollen') setScreen(gs.roundIdx>=(gs.rounds?.length||17)?'gameOver':'game');
     else if (gs?.mode==='toepen') setScreen(gs.winner?'toepOver':'toepen');
   }
   async function takeOverControls() {
@@ -354,8 +356,9 @@ export default function App() {
   async function startBollen() {
     if (gamePlayers.length<2) return;
     const slim=gamePlayers.map(slimPlayer);
-    const init={mode:"bollen",players:slim,scores:slim.map(()=>Array(17).fill(null)),
-      roundIdx:0,step:1,bidPos:0,checkPos:0,bids:[],startingPlayer:0};
+    const rounds=ROUND_SETS[bollenRounds]||ROUND_SETS[17];
+    const init={mode:"bollen",players:slim,scores:slim.map(()=>Array(rounds.length).fill(null)),
+      rounds,roundIdx:0,step:1,bidPos:0,checkPos:0,bids:[],startingPlayer:0};
     setGame(init);
     go("game");
     await createLiveGame(init,'bollen',gamePlayers.map(p=>p.id));
@@ -386,9 +389,10 @@ export default function App() {
       });
       await supabase.from('game_players').insert(playerRows);
       const roundRows = [];
-      ROUNDS.forEach((_, ri) => {
+      const roundCount = Math.max(0, ...scores.map(s=>s.length));
+      Array.from({length:roundCount}).forEach((_, ri) => {
         players.forEach((p, pi) => {
-          if (scores[pi][ri] !== null) {
+          if (scores[pi][ri] !== undefined && scores[pi][ri] !== null) {
             roundRows.push({ game_id: gameRow.id, round_number: ri, player_id: p.id, bid: 0, score: scores[pi][ri] });
           }
         });
@@ -434,6 +438,7 @@ export default function App() {
       groupFriends={groupFriends} currentGroup={currentGroup}
       startToepen={startToepen} startBollen={startBollen}
       removePlayer={removePlayer} togglePlayer={togglePlayer}
+      bollenRounds={bollenRounds} setBollenRounds={setBollenRounds}
       go={go}
     />
   );
@@ -467,7 +472,7 @@ export default function App() {
     />
   );
 
-  if (screen==="game"&&game&&game.mode==="bollen"&&game.roundIdx<17) return (
+  if (screen==="game"&&game&&game.mode==="bollen"&&game.roundIdx<(game.rounds?.length||17)) return (
     <GameScreen
       th={th} S={S} themeName={themeName}
       game={game} setGame={setGame}

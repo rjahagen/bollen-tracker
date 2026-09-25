@@ -1,5 +1,4 @@
 import React from 'react';
-import { ROUNDS } from '../constants';
 import ZenPaper, { ZEN_STYLE } from '../components/ZenPaper';
 import Avatar from '../components/Avatar';
 import QuitModal from '../components/QuitModal';
@@ -9,14 +8,14 @@ export default function GameScreen({ th, S, themeName, game, setGame, showQuit, 
   function playerTotal(idx) { if (!game) return 0; return game.scores[idx].reduce((a,v)=>a+(v??0),0); }
   function getBidOrder(g) { return Array.from({length:g.players.length},(_,i)=>(g.startingPlayer+i)%g.players.length); }
   function isForbidden(g,pos,val) {
-    const max=ROUNDS[g.roundIdx].cards;
-    if (max===1&&(g.roundIdx===0||g.roundIdx===16)) return false;
+    const max=g.rounds[g.roundIdx].cards;
+    if (max===1&&(g.roundIdx===0||g.roundIdx===g.rounds.length-1)) return false;
     if (pos!==g.players.length-1) return false;
     return g.bids.slice(0,pos).reduce((a,b)=>a+(b??0),0)+val===max;
   }
   function setBid(delta) {
     setGame(g=>{
-      const max=ROUNDS[g.roundIdx].cards;
+      const max=g.rounds[g.roundIdx].cards;
       let next=(g.bids[g.bidPos]??0)+delta;
       if (next<0) next=0; if (next>max) next=max;
       if (isForbidden(g,g.bidPos,next)) { next+=delta; if (next<0||next>max||isForbidden(g,g.bidPos,next)) return g; }
@@ -59,7 +58,7 @@ export default function GameScreen({ th, S, themeName, game, setGame, showQuit, 
         setTimeout(()=>setRoundNote(null),3000);
         return;
       }
-      const isSpecialRound=g.roundIdx===0||g.roundIdx===16;
+      const isSpecialRound=g.roundIdx===0||g.roundIdx===g.rounds.length-1;
       if (!isSpecialRound) {
         const allCorrect=g.players.every((_,i)=>scores[i][g.roundIdx]!=null&&scores[i][g.roundIdx]>=0);
         if (allCorrect) {
@@ -72,7 +71,7 @@ export default function GameScreen({ th, S, themeName, game, setGame, showQuit, 
         }
       }
       const nextRound=g.roundIdx+1;
-      if (nextRound>=17) {
+      if (nextRound>=g.rounds.length) {
         const totals=g.players.map((p,i)=>({...p,total:scores[i].reduce((a,v)=>a+(v??0),0),scores:scores[i]}));
         totals.sort((a,b)=>b.total-a.total);
         setBollenStats(prev=>{ const next={...prev}; totals.forEach((r,rank)=>{ const st=next[r.id]||{games:0,wins:0}; next[r.id]={games:st.games+1,wins:st.wins+(rank===0?1:0)}; }); return next; });
@@ -103,14 +102,14 @@ export default function GameScreen({ th, S, themeName, game, setGame, showQuit, 
     setGame(ns); syncLiveGame(ns);
   }
 
-  const round=ROUNDS[game.roundIdx];
+  const round=game.rounds[game.roundIdx];
   const n=game.players.length;
   const order=getBidOrder(game);
   const curPi=game.step===1?order[game.bidPos]:order[game.checkPos];
   const curPlayer=game.players[curPi];
   const bidSoFar=game.bids.slice(0,game.bidPos).reduce((a,b)=>a+(b??0),0);
   const isLastBid=game.step===1&&game.bidPos===n-1;
-  const isExempt=round.cards===1&&(game.roundIdx===0||game.roundIdx===16);
+  const isExempt=round.cards===1&&(game.roundIdx===0||game.roundIdx===game.rounds.length-1);
   const forbidden=isLastBid&&!isExempt?round.cards-bidSoFar:null;
 
   return (
@@ -121,7 +120,7 @@ export default function GameScreen({ th, S, themeName, game, setGame, showQuit, 
         <div style={{...S.header,flexShrink:0}}>
           <button style={S.backBtn} onClick={()=>setShowQuit(true)}>✕</button>
           <h2 style={{...S.title,fontSize:16}}>Bollen</h2>
-          <span style={{marginLeft:"auto",fontSize:12,color:th.textDim,letterSpacing:1}}>R{game.roundIdx+1}/17 · {round.cards}🃏</span>
+          <span style={{marginLeft:"auto",fontSize:12,color:th.textDim,letterSpacing:1}}>R{game.roundIdx+1}/{game.rounds.length} · {round.cards}🃏</span>
         </div>
         {showQuit&&<QuitModal th={th} S={S} onCancel={()=>setShowQuit(false)} onConfirm={async ()=>{ setShowQuit(false); await endLiveGame(); setGame(null); go("home"); }}/>}
         <div style={{flex:1,overflowY:"auto",overflowX:"auto"}}>
@@ -139,7 +138,7 @@ export default function GameScreen({ th, S, themeName, game, setGame, showQuit, 
               </tr>
             </thead>
             <tbody>
-              {ROUNDS.map((r,ri)=>{
+              {game.rounds.map((r,ri)=>{
                 const isCur=ri===game.roundIdx;
                 return (
                   <tr key={ri} style={{background:isCur?th.surface2:ri%2===0?th.bg:th.surface,borderLeft:isCur?`2px solid ${th.gold}`:"2px solid transparent"}}>
@@ -214,7 +213,7 @@ export default function GameScreen({ th, S, themeName, game, setGame, showQuit, 
                 <div style={{flex:1}}>
                   <div style={{fontSize:11,color:th.textDim,letterSpacing:2,textTransform:"uppercase"}}>Controleren — {game.checkPos+1}/{n}</div>
                   <div style={{fontSize:17,fontWeight:700,color:th.gold,letterSpacing:1}}>{curPlayer.name}</div>
-                  <div style={{fontSize:13,color:th.textMid}}>Geboden: <strong style={{color:th.text}}>{game.bids[game.checkPos]??0}</strong>{(()=>{const tot=game.bids.reduce((a,b)=>a+(b??0),0);const cards=ROUNDS[game.roundIdx].cards;const diff=cards-tot;if(diff===0)return <span style={{color:"#7a9a60",marginLeft:8,fontSize:11,letterSpacing:1,textTransform:"uppercase"}}>Precies</span>;return <span style={{color:th.textDim,marginLeft:8,fontSize:11,letterSpacing:1}}>{Math.abs(diff)} {diff>0?"onderboden":"overboden"}</span>;})()}</div>
+                  <div style={{fontSize:13,color:th.textMid}}>Geboden: <strong style={{color:th.text}}>{game.bids[game.checkPos]??0}</strong>{(()=>{const tot=game.bids.reduce((a,b)=>a+(b??0),0);const cards=game.rounds[game.roundIdx].cards;const diff=cards-tot;if(diff===0)return <span style={{color:"#7a9a60",marginLeft:8,fontSize:11,letterSpacing:1,textTransform:"uppercase"}}>Precies</span>;return <span style={{color:th.textDim,marginLeft:8,fontSize:11,letterSpacing:1}}>{Math.abs(diff)} {diff>0?"onderboden":"overboden"}</span>;})()}</div>
                 </div>
               </div>
               {(!liveGameId||isController)&&(

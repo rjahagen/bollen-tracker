@@ -1,8 +1,9 @@
 import React, { useRef } from 'react';
 import Wrap from '../components/Wrap';
 import Avatar from '../components/Avatar';
+import { ROUND_LEVELS } from '../constants';
 
-export default function SelectPlayersScreen({ th, S, themeName, gamePlayers, setGamePlayers, maxPlayers, gameMode, groupFriends, currentGroup, startToepen, startBollen, removePlayer, togglePlayer, go }) {
+export default function SelectPlayersScreen({ th, S, themeName, gamePlayers, setGamePlayers, maxPlayers, gameMode, groupFriends, currentGroup, startToepen, startBollen, removePlayer, togglePlayer, bollenRounds, setBollenRounds, go }) {
   const guestInputRef = useRef(null);
   const startFn = gameMode==="toepen" ? startToepen : startBollen;
   const label   = gameMode==="toepen" ? "Toepen" : "Bollen";
@@ -12,6 +13,22 @@ export default function SelectPlayersScreen({ th, S, themeName, gamePlayers, set
         <button style={S.backBtn} onClick={()=>go("home")}>‹</button>
         <h2 style={S.title}>{label} — Spelers</h2>
       </div>
+      {gameMode==="bollen" && (
+        <div style={{padding:"12px 16px 0"}}>
+          <p style={{...S.label,margin:"0 0 8px"}}>Aantal rondes</p>
+          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+            {ROUND_LEVELS.map(n=>(
+              <button key={n} onClick={()=>setBollenRounds(n)} style={{
+                flex:1,minWidth:58,padding:"10px 0",borderRadius:8,cursor:"pointer",fontSize:13,fontWeight:700,
+                fontFamily:th.font,
+                background: bollenRounds===n ? th.gold : "transparent",
+                color: bollenRounds===n ? th.bg : th.textDim,
+                border:`1px solid ${bollenRounds===n?th.gold:th.border}`,
+              }}>{n===17?"Volledig":n===3?"Kort":n}</button>
+            ))}
+          </div>
+        </div>
+      )}
       <div style={{padding:"12px 16px 8px",display:"flex",justifyContent:"center",gap:6,flexWrap:"wrap"}}>
         {Array(maxPlayers).fill(null).map((_,i)=>{
           const p=gamePlayers[i];
