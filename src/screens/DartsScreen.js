@@ -179,6 +179,24 @@ export default function DartsScreen({ th, go, S, themeName, groupFriends=[] }) {
 
         {!started ? (
           <div style={{padding:"16px 16px 96px"}}>
+            <p style={{...S.label,margin:"8px 0 8px"}}>Speelvorm</p>
+            <div style={{display:"flex",gap:8,marginBottom:24}}>
+              <button onClick={()=>setTeamMode(false)} style={{
+                flex:1,padding:"12px 0",borderRadius:8,cursor:"pointer",fontSize:13,fontWeight:700,
+                fontFamily:th.font,textTransform:"uppercase",letterSpacing:1,
+                background: !teamMode ? th.gold : "transparent",
+                color: !teamMode ? th.bg : th.textDim,
+                border:`1px solid ${!teamMode?th.gold:th.border}`,
+              }}>Individueel</button>
+              <button onClick={()=>setTeamMode(true)} style={{
+                flex:1,padding:"12px 0",borderRadius:8,cursor:"pointer",fontSize:13,fontWeight:700,
+                fontFamily:th.font,textTransform:"uppercase",letterSpacing:1,
+                background: teamMode ? th.gold : "transparent",
+                color: teamMode ? th.bg : th.textDim,
+                border:`1px solid ${teamMode?th.gold:th.border}`,
+              }}>Team (2 spelers)</button>
+            </div>
+
             <p style={{...S.label,margin:"8px 0 6px"}}>Spelers</p>
             <p style={{color:th.textDim,fontSize:12,margin:"0 0 14px",lineHeight:1.5}}>
               Iedereen (of elk team) moet om de beurt 1 t/m 20 en de bull raken, in volgorde. Single = +1, Double = +2, Triple = +3.
@@ -212,11 +230,6 @@ export default function DartsScreen({ th, go, S, themeName, groupFriends=[] }) {
                 </div>
               </>
             )}
-
-            <div style={{display:"flex",alignItems:"center",gap:10,margin:"4px 0 14px"}}>
-              <input type="checkbox" id="darts-team-mode" checked={teamMode} onChange={e=>setTeamMode(e.target.checked)} style={{width:18,height:18,cursor:"pointer",accentColor:th.gold}}/>
-              <label htmlFor="darts-team-mode" style={{color:th.textMid,fontSize:13,cursor:"pointer"}}>Teamspel — teams van 2 spelers</label>
-            </div>
 
             {teamMode && (
               <div style={{marginBottom:20}}>
