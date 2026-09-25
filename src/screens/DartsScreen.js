@@ -52,6 +52,13 @@ function DartBoard({ target, th, size=260 }) {
 
 function unitLabel(unit) { return unit ? unit.members.map(m=>m.name).join(" & ") : ""; }
 
+function finishText(fw) {
+  if (fw==="Bullseye") return "de Bullseye 🎯";
+  if (fw==="2x Bull in dezelfde ronde") return "2x Bull in dezelfde ronde";
+  if (fw==="3x Bull") return "3x Bull (verspreid over meerdere ronden)";
+  return "de Bull";
+}
+
 function UnitAvatars({ unit, th, size=56 }) {
   if (!unit) return null;
   if (unit.members.length===1) {
@@ -96,10 +103,10 @@ export default function DartsScreen({ th, go, S, themeName, groupFriends=[] }) {
     if (teamMode) {
       newUnits = [];
       for (let i=0; i<players.length; i+=2) {
-        newUnits.push({ id:`team_${i/2}`, members:[players[i],players[i+1]], position:1, finished:false, finishedWith:null });
+        newUnits.push({ id:`team_${i/2}`, members:[players[i],players[i+1]], position:1, finished:false, finishedWith:null, bullHits:0, bullHitsThisTurn:0 });
       }
     } else {
-      newUnits = players.map(p=>({ id:p.id, members:[p], position:1, finished:false, finishedWith:null }));
+      newUnits = players.map(p=>({ id:p.id, members:[p], position:1, finished:false, finishedWith:null, bullHits:0, bullHitsThisTurn:0 }));
     }
     setUnits(newUnits);
     setCurrentIdx(0);
@@ -125,29 +132,44 @@ export default function DartsScreen({ th, go, S, themeName, groupFriends=[] }) {
     });
   }
 
-  function hitBull(label) {
+  function hitBull(kind) {
     if (winner || units.length===0) return;
     pushHistory();
     setUnits(prev => {
       const next = prev.map(u=>({...u}));
       const u = next[currentIdx];
-      u.finished = true;
-      u.finishedWith = label;
-      setWinner(u);
+      if (kind==="Bullseye") {
+        u.finished = true;
+        u.finishedWith = "Bullseye";
+        setWinner(u);
+      } else {
+        u.bullHits = (u.bullHits||0) + 1;
+        u.bullHitsThisTurn = (u.bullHitsThisTurn||0) + 1;
+        if (u.bullHitsThisTurn>=2) {
+          u.finished = true;
+          u.finishedWith = "2x Bull in dezelfde ronde";
+          setWinner(u);
+        } else if (u.bullHits>=3) {
+          u.finished = true;
+          u.finishedWith = "3x Bull";
+          setWinner(u);
+        }
+      }
       return next;
     });
   }
 
   function nextTurn() {
     if (units.length<2) return;
+    let nextIdx = currentIdx;
+    for (let k=1;k<=units.length;k++) {
+      const idx = (currentIdx+k) % units.length;
+      if (!units[idx].finished) { nextIdx = idx; break; }
+    }
+    if (nextIdx===currentIdx) return;
     pushHistory();
-    setCurrentIdx(i => {
-      for (let k=1;k<=units.length;k++) {
-        const n = (i+k) % units.length;
-        if (!units[n].finished) return n;
-      }
-      return i;
-    });
+    setUnits(prev => prev.map((u,i)=> i===nextIdx ? {...u,bullHitsThisTurn:0} : u));
+    setCurrentIdx(nextIdx);
   }
 
   function undo() {
@@ -199,7 +221,8 @@ export default function DartsScreen({ th, go, S, themeName, groupFriends=[] }) {
 
             <p style={{...S.label,margin:"8px 0 6px"}}>Spelers</p>
             <p style={{color:th.textDim,fontSize:12,margin:"0 0 14px",lineHeight:1.5}}>
-              Iedereen (of elk team) moet om de beurt 1 t/m 20 en de bull raken, in volgorde. Single = +1, Double = +2, Triple = +3.
+              Iedereen (of elk team) moet om de beurt 1 t/m 20 raken, in volgorde. Single = +1, Double = +2, Triple = +3.
+              Op de bull win je met 1x Bullseye, 2x Bull in dezelfde ronde, of 3x Bull verspreid over meerdere ronden.
             </p>
             {players.length>0 && (
               <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:14}}>
@@ -259,7 +282,7 @@ export default function DartsScreen({ th, go, S, themeName, groupFriends=[] }) {
             <div style={{fontSize:11,color:th.textDim,letterSpacing:4,textTransform:"uppercase",margin:"24px 0 16px"}}>Winnaar</div>
             <UnitAvatars unit={winner} th={th} size={88}/>
             <div style={{fontSize:26,fontWeight:700,color:th.gold,letterSpacing:2,textTransform:"uppercase",fontFamily:th.titleFont}}>🏆 {unitLabel(winner)}</div>
-            <div style={{fontSize:13,color:th.textMid,marginTop:4,marginBottom:20}}>Uitgegooid met de {winner.finishedWith==="Bullseye"?"Bullseye 🎯":"Bull"}</div>
+            <div style={{fontSize:13,color:th.textMid,marginTop:4,marginBottom:20}}>Uitgegooid met {finishText(winner.finishedWith)}</div>
             <div style={{display:"flex",justifyContent:"center",marginBottom:24}}>
               <DartBoard target={null} th={th} size={220}/>
             </div>
@@ -272,6 +295,11 @@ export default function DartsScreen({ th, go, S, themeName, groupFriends=[] }) {
             <UnitAvatars unit={current} th={th} size={56}/>
             <p style={{color:th.gold,fontSize:22,fontWeight:700,letterSpacing:1,margin:"0 0 4px",fontFamily:th.titleFont}}>{unitLabel(current)}</p>
             <p style={{color:th.textMid,fontSize:13,margin:"0 0 16px"}}>Doel: <b style={{color:th.gold}}>{current ? targetOf(current) : "-"}</b></p>
+            {current && current.position>20 && (
+              <p style={{color:th.textDim,fontSize:12,margin:"-10px 0 16px"}}>
+                Bull geraakt: {current.bullHits||0}/3 · deze ronde: {current.bullHitsThisTurn||0}/2
+              </p>
+            )}
 
             <div style={{display:"flex",justifyContent:"center",marginBottom:18}}>
               <DartBoard target={current ? targetOf(current) : null} th={th}/>
