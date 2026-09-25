@@ -18,6 +18,7 @@ import SpelregelsScreen    from './screens/SpelregelsScreen';
 import PollsScreen         from './screens/PollsScreen';
 import CountdownScreen     from './screens/CountdownScreen';
 import DiceScreen          from './screens/DiceScreen';
+import DartsScreen         from './screens/DartsScreen';
 
 export default function App() {
   const [themeName, setThemeName]     = useState(() => loadS("cards_theme", "normal"));
@@ -547,6 +548,10 @@ export default function App() {
 
   if (screen==="dice") return (
     <DiceScreen th={th} go={go} S={S} themeName={themeName}/>
+  );
+
+  if (screen==="darts") return (
+    <DartsScreen th={th} go={go} S={S} themeName={themeName}/>
   );
 
   return null;
