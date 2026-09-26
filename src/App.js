@@ -120,7 +120,8 @@ export default function App() {
   }, []);
   useEffect(()=>{
     async function fetchDartsStats() {
-      const { data } = await supabase.from('darts_players').select('player_id, is_winner, darts_thrown, darts_missed');
+      const { data, error } = await supabase.from('darts_players').select('player_id, is_winner, darts_thrown, darts_missed');
+      if (error) { console.error('[fetchDartsStats] failed — has database-migration-darts.sql been run in Supabase?', error); return; }
       if (!data) return;
       const agg = {};
       data.forEach(row => {
@@ -426,9 +427,16 @@ export default function App() {
   async function saveDartsGame(mode, entries) {
     try {
       const { data: gameRow, error } = await supabase.from('darts_games').insert({ mode }).select().single();
-      if (error || !gameRow) return;
+      if (error || !gameRow) {
+        console.error('[saveDartsGame] could not insert into darts_games — has database-migration-darts.sql been run in Supabase?', error);
+        return;
+      }
       const rows = entries.map(e => ({ darts_game_id: gameRow.id, ...e }));
-      await supabase.from('darts_players').insert(rows);
+      const { error: playersError } = await supabase.from('darts_players').insert(rows);
+      if (playersError) {
+        console.error('[saveDartsGame] could not insert into darts_players:', playersError);
+        return;
+      }
       setDartsStats(prev => {
         const next = { ...prev };
         entries.forEach(e => {
