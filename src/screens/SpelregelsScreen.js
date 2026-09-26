@@ -70,6 +70,28 @@ export default   function SpelregelsScreen({ th, go, S, themeName }) {
           ],
         },
       },
+      darts: {
+        nl: {
+          title: "Around The World",
+          intro: "Around The World is een dartspel waarbij je (of je team) de nummers 1 t/m 20 in oplopende volgorde moet raken, gevolgd door de bull.",
+          sections: [
+            { heading: "Volgorde", body: "Je begint bij nummer 1 en moet elk nummer in oplopende volgorde raken voordat je verder mag. Een Single telt als 1 stap vooruit, een Double als 2 stappen en een Triple als 3 stappen." },
+            { heading: "De bull", body: "Zodra je bij 20 bent gekomen, is de bull je volgende doel. Om te winnen heb je een van de volgende nodig:\n• 1x Bullseye\n• 2x Bull in dezelfde ronde (voordat je de beurt doorgeeft)\n• 3x Bull, verspreid over meerdere ronden" },
+            { heading: "Teamspel", body: "Bij teamspel spelen twee spelers samen als één team en delen ze dezelfde voortgang. Per beurt gooit steeds een andere speler van het team, om en om." },
+            { heading: "Ongedaan maken", body: "Verkeerde knop geraakt? Gebruik 'Ongedaan maken' om de laatste worp of beurtwissel terug te draaien — dit werkt ook nog nadat een team net heeft gewonnen." },
+          ],
+        },
+        en: {
+          title: "Around The World",
+          intro: "Around The World is a darts game where you (or your team) must hit the numbers 1 through 20 in ascending order, followed by the bull.",
+          sections: [
+            { heading: "Order", body: "You start at number 1 and must hit each number in ascending order before moving on. A Single counts as 1 step forward, a Double as 2 steps, and a Triple as 3 steps." },
+            { heading: "The bull", body: "Once you've reached 20, the bull is your next target. To win you need one of:\n• 1x Bullseye\n• 2x Bull in the same round (before passing the turn)\n• 3x Bull, spread across multiple rounds" },
+            { heading: "Team play", body: "In team play, two players play together as one team and share the same progress. Each turn a different team member throws, alternating." },
+            { heading: "Undo", body: "Hit the wrong button? Use 'Undo' to revert the last throw or turn change — this still works even right after a team has just won." },
+          ],
+        },
+      },
     };
 
     const current = rules[activeGame][lang];
@@ -88,7 +110,7 @@ export default   function SpelregelsScreen({ th, go, S, themeName }) {
           </div>
 
           <div style={{display:"flex",gap:8,padding:"12px 16px 0"}}>
-            {["bollen","toepen"].map(g=>{
+            {["bollen","toepen","darts"].map(g=>{
               const isAct = activeGame===g;
               const isZenAct = isAct && themeName==="zen";
               return (

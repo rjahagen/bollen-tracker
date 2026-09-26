@@ -83,6 +83,7 @@ function DartBoard({ target, th, size=260 }) {
 }
 
 function unitLabel(unit) { return unit ? unit.members.map(m=>m.name).join(" & ") : ""; }
+function activeThrower(unit) { return unit ? unit.members[(unit.throwerIdx||0) % unit.members.length] : null; }
 
 function finishText(fw) {
   if (fw==="Bullseye") return "de Bullseye 🎯";
@@ -91,16 +92,20 @@ function finishText(fw) {
   return "de Bull";
 }
 
-function UnitAvatars({ unit, th, size=56 }) {
+function UnitAvatars({ unit, th, size=56, activeId }) {
   if (!unit) return null;
   if (unit.members.length===1) {
     return <Avatar player={unit.members[0]} th={th} size={size} style={{margin:"0 auto 8px",border:`1px solid ${th.gold}`}}/>;
   }
   return (
-    <div style={{display:"flex",justifyContent:"center",gap:6,marginBottom:8}}>
-      {unit.members.map(m=>(
-        <Avatar key={m.id} player={m} th={th} size={size*0.78} style={{border:`1px solid ${th.gold}`}}/>
-      ))}
+    <div style={{display:"flex",justifyContent:"center",alignItems:"center",gap:6,marginBottom:8}}>
+      {unit.members.map(m=>{
+        const isActive = activeId==null || m.id===activeId;
+        return (
+          <Avatar key={m.id} player={m} th={th} size={activeId!=null ? (isActive?size*0.85:size*0.6) : size*0.78}
+            style={{border:`1px solid ${th.gold}`, opacity: activeId!=null && !isActive ? 0.45 : 1}}/>
+        );
+      })}
     </div>
   );
 }
@@ -135,7 +140,7 @@ export default function DartsScreen({ th, go, S, themeName, groupFriends=[] }) {
     if (teamMode) {
       newUnits = [];
       for (let i=0; i<players.length; i+=2) {
-        newUnits.push({ id:`team_${i/2}`, members:[players[i],players[i+1]], position:1, finished:false, finishedWith:null, bullHits:0, bullHitsThisTurn:0 });
+        newUnits.push({ id:`team_${i/2}`, members:[players[i],players[i+1]], position:1, finished:false, finishedWith:null, bullHits:0, bullHitsThisTurn:0, throwerIdx:0 });
       }
     } else {
       newUnits = players.map(p=>({ id:p.id, members:[p], position:1, finished:false, finishedWith:null, bullHits:0, bullHitsThisTurn:0 }));
@@ -200,7 +205,11 @@ export default function DartsScreen({ th, go, S, themeName, groupFriends=[] }) {
     }
     if (nextIdx===currentIdx) return;
     pushHistory();
-    setUnits(prev => prev.map((u,i)=> i===nextIdx ? {...u,bullHitsThisTurn:0} : u));
+    setUnits(prev => prev.map((u,i)=> {
+      if (i===currentIdx && u.members.length===2) return {...u, throwerIdx: 1-u.throwerIdx};
+      if (i===nextIdx) return {...u, bullHitsThisTurn:0};
+      return u;
+    }));
     setCurrentIdx(nextIdx);
   }
 
@@ -251,11 +260,10 @@ export default function DartsScreen({ th, go, S, themeName, groupFriends=[] }) {
               }}>Team (2 spelers)</button>
             </div>
 
-            <p style={{...S.label,margin:"8px 0 6px"}}>Spelers</p>
-            <p style={{color:th.textDim,fontSize:12,margin:"0 0 14px",lineHeight:1.5}}>
-              Iedereen (of elk team) moet om de beurt 1 t/m 20 raken, in volgorde. Single = +1, Double = +2, Triple = +3.
-              Op de bull win je met 1x Bullseye, 2x Bull in dezelfde ronde, of 3x Bull verspreid over meerdere ronden.
-            </p>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",margin:"8px 0 14px"}}>
+              <p style={{...S.label,margin:0}}>Spelers</p>
+              <button onClick={()=>go("spelregels")} style={{background:"none",border:"none",color:th.gold,fontSize:12,cursor:"pointer",padding:0,letterSpacing:1}}>Spelregels ›</button>
+            </div>
             {players.length>0 && (
               <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:14}}>
                 {players.map(p=>(
@@ -323,9 +331,16 @@ export default function DartsScreen({ th, go, S, themeName, groupFriends=[] }) {
           </div>
         ) : (
           <div style={{padding:"8px 16px 96px",textAlign:"center"}}>
-            <p style={{color:th.textDim,fontSize:11,letterSpacing:2,textTransform:"uppercase",margin:"12px 0 4px"}}>{teamMode ? "Team aan de beurt" : "Aan de beurt"}</p>
-            <UnitAvatars unit={current} th={th} size={56}/>
-            <p style={{color:th.gold,fontSize:22,fontWeight:700,letterSpacing:1,margin:"0 0 4px",fontFamily:th.titleFont}}>{unitLabel(current)}</p>
+            <p style={{color:th.textDim,fontSize:11,letterSpacing:2,textTransform:"uppercase",margin:"12px 0 4px"}}>
+              {teamMode && current ? `Team ${currentIdx+1} · Speler ${(current.throwerIdx||0)+1}` : "Aan de beurt"}
+            </p>
+            <UnitAvatars unit={current} th={th} size={56} activeId={teamMode ? activeThrower(current)?.id : undefined}/>
+            <p style={{color:th.gold,fontSize:22,fontWeight:700,letterSpacing:1,margin:"0 0 4px",fontFamily:th.titleFont}}>
+              {teamMode ? activeThrower(current)?.name : unitLabel(current)}
+            </p>
+            {teamMode && current && (
+              <p style={{color:th.textDim,fontSize:12,margin:"-2px 0 4px"}}>samen met {current.members.find(m=>m.id!==activeThrower(current)?.id)?.name}</p>
+            )}
             <p style={{color:th.textMid,fontSize:13,margin:"0 0 16px"}}>Doel: <b style={{color:th.gold}}>{current ? targetOf(current) : "-"}</b></p>
             {current && current.position>20 && (
               <p style={{color:th.textDim,fontSize:12,margin:"-10px 0 16px"}}>
