@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import ZenPaper, { ZEN_STYLE } from '../components/ZenPaper';
 import Avatar from '../components/Avatar';
 
@@ -122,6 +122,15 @@ export default function DartsScreen({ th, go, S, themeName, groupFriends=[], sav
   const [history, setHistory]       = useState([]); // stack of {units,currentIdx,winner,playerThrows} snapshots
   const [playerThrows, setPlayerThrows] = useState({}); // { [playerId]: {darts, misses} } — this game only
   const [saved, setSaved]           = useState(false);
+  const [bonusNote, setBonusNote]   = useState(false);
+  const bonusTimer = useRef(null);
+
+  function flashBonusNote() {
+    setBonusNote(true);
+    if (bonusTimer.current) clearTimeout(bonusTimer.current);
+    bonusTimer.current = setTimeout(()=>setBonusNote(false), 2500);
+  }
+  useEffect(()=>()=>{ if (bonusTimer.current) clearTimeout(bonusTimer.current); }, []);
 
   useEffect(()=>{
     if (winner && !saved && saveDartsGame) {
@@ -169,6 +178,7 @@ export default function DartsScreen({ th, go, S, themeName, groupFriends=[], sav
     setHistory([]);
     setPlayerThrows({});
     setSaved(false);
+    setBonusNote(false);
     setStarted(true);
   }
 
@@ -201,6 +211,7 @@ export default function DartsScreen({ th, go, S, themeName, groupFriends=[], sav
       const u = next[currentIdx];
       u.position = Math.min(21, u.position+mult);
       u.dartsThisTurn = (u.dartsThisTurn||0)+1;
+      if (u.dartsThisTurn>=DARTS_PER_TURN) { u.dartsThisTurn = 0; flashBonusNote(); }
       return next;
     });
   }
@@ -233,6 +244,7 @@ export default function DartsScreen({ th, go, S, themeName, groupFriends=[], sav
           setWinner(u);
         }
       }
+      if (!u.finished && u.dartsThisTurn>=DARTS_PER_TURN) { u.dartsThisTurn = 0; flashBonusNote(); }
       return next;
     });
   }
@@ -284,7 +296,6 @@ export default function DartsScreen({ th, go, S, themeName, groupFriends=[], sav
   const current = units[currentIdx];
   const pickableFriends = groupFriends.filter(f=>!players.find(p=>p.id===f.id));
   const teamPairs = teamMode ? Array.from({length:Math.floor(players.length/2)}, (_,i)=>[players[i*2],players[i*2+1]]) : [];
-  const dartsLeft = current ? DARTS_PER_TURN-(current.dartsThisTurn||0) : 0;
 
   return (
     <div style={{...S.app,minHeight:"100dvh"}}>
@@ -398,7 +409,7 @@ export default function DartsScreen({ th, go, S, themeName, groupFriends=[], sav
               <p style={{color:th.textDim,fontSize:12,margin:"-2px 0 4px"}}>samen met {current.members.find(m=>m.id!==activeThrower(current)?.id)?.name}</p>
             )}
             <p style={{color:th.textMid,fontSize:13,margin:"0 0 4px"}}>Doel: <b style={{color:th.gold}}>{current ? targetOf(current) : "-"}</b></p>
-            <p style={{color:th.textDim,fontSize:12,margin:"0 0 16px"}}>Darts deze beurt: {(current?.dartsThisTurn||0)}/{DARTS_PER_TURN}</p>
+            <p style={{color:th.textDim,fontSize:12,margin:"0 0 16px"}}>Darts deze ronde: {(current?.dartsThisTurn||0)}/{DARTS_PER_TURN}</p>
             {current && current.position>20 && (
               <p style={{color:th.textDim,fontSize:12,margin:"-10px 0 16px"}}>
                 Bull geraakt: {current.bullHits||0}/3 · deze ronde: {current.bullHitsThisTurn||0}/2
@@ -409,20 +420,20 @@ export default function DartsScreen({ th, go, S, themeName, groupFriends=[], sav
               <DartBoard target={current ? targetOf(current) : null} th={th}/>
             </div>
 
-            {dartsLeft<=0 && (
-              <p style={{color:th.gold,fontSize:12,margin:"0 0 10px",letterSpacing:1,textTransform:"uppercase"}}>Beurt klaar — druk op volgende</p>
+            {bonusNote && (
+              <p style={{color:th.gold,fontSize:12,margin:"0 0 10px",letterSpacing:1,textTransform:"uppercase"}}>🔥 Perfect! Nog 3 darts in dezelfde ronde</p>
             )}
             <div style={{display:"flex",gap:8,justifyContent:"center",marginBottom:12,flexWrap:"wrap"}}>
               {current && current.position<=20 ? (
                 <>
-                  <button style={{...S.primary,width:"auto",padding:"13px 22px"}} disabled={dartsLeft<=0} onClick={()=>hit(1)}>Single</button>
-                  <button style={{...S.primary,width:"auto",padding:"13px 22px"}} disabled={dartsLeft<=0} onClick={()=>hit(2)}>Double</button>
-                  <button style={{...S.primary,width:"auto",padding:"13px 22px"}} disabled={dartsLeft<=0} onClick={()=>hit(3)}>Triple</button>
+                  <button style={{...S.primary,width:"auto",padding:"13px 22px"}} onClick={()=>hit(1)}>Single</button>
+                  <button style={{...S.primary,width:"auto",padding:"13px 22px"}} onClick={()=>hit(2)}>Double</button>
+                  <button style={{...S.primary,width:"auto",padding:"13px 22px"}} onClick={()=>hit(3)}>Triple</button>
                 </>
               ) : (
                 <>
-                  <button style={{...S.primary,width:"auto",padding:"13px 22px"}} disabled={dartsLeft<=0} onClick={()=>hitBull("Bull")}>Bull</button>
-                  <button style={{...S.primary,width:"auto",padding:"13px 22px"}} disabled={dartsLeft<=0} onClick={()=>hitBull("Bullseye")}>Bulls eye</button>
+                  <button style={{...S.primary,width:"auto",padding:"13px 22px"}} onClick={()=>hitBull("Bull")}>Bull</button>
+                  <button style={{...S.primary,width:"auto",padding:"13px 22px"}} onClick={()=>hitBull("Bullseye")}>Bulls eye</button>
                 </>
               )}
             </div>
