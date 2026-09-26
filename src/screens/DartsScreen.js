@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ZenPaper, { ZEN_STYLE } from '../components/ZenPaper';
 import Avatar from '../components/Avatar';
 
 const DARTBOARD_ORDER = [20,1,18,4,13,6,10,15,2,17,3,19,7,16,8,11,14,9,12,5];
+const DARTS_PER_TURN = 3;
 
 function dbPolar(cx, cy, r, angleDeg) {
   const rad = (angleDeg - 90) * Math.PI / 180;
@@ -110,15 +111,32 @@ function UnitAvatars({ unit, th, size=56, activeId }) {
   );
 }
 
-export default function DartsScreen({ th, go, S, themeName, groupFriends=[] }) {
+export default function DartsScreen({ th, go, S, themeName, groupFriends=[], saveDartsGame }) {
   const [players, setPlayers]       = useState([]); // roster before start: {id,name,photo}
   const [newName, setNewName]       = useState("");
   const [teamMode, setTeamMode]     = useState(false);
   const [started, setStarted]       = useState(false);
-  const [units, setUnits]           = useState([]); // {id,members:[player,...],position,finished,finishedWith}
+  const [units, setUnits]           = useState([]); // {id,members:[player,...],position,finished,finishedWith,dartsThisTurn,throwerIdx}
   const [currentIdx, setCurrentIdx] = useState(0);
   const [winner, setWinner]         = useState(null);
-  const [history, setHistory]       = useState([]); // stack of {units,currentIdx,winner} snapshots
+  const [history, setHistory]       = useState([]); // stack of {units,currentIdx,winner,playerThrows} snapshots
+  const [playerThrows, setPlayerThrows] = useState({}); // { [playerId]: {darts, misses} } — this game only
+  const [saved, setSaved]           = useState(false);
+
+  useEffect(()=>{
+    if (winner && !saved && saveDartsGame) {
+      setSaved(true);
+      const entries = units.flatMap((u, idx) => u.members.map(m => ({
+        player_id: m.id,
+        player_name: m.name,
+        team_index: teamMode ? idx : null,
+        is_winner: u.id===winner.id,
+        darts_thrown: playerThrows[m.id]?.darts || 0,
+        darts_missed: playerThrows[m.id]?.misses || 0,
+      })));
+      saveDartsGame(teamMode?'team':'solo', entries);
+    }
+  }, [winner]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function addPlayer() {
     const name = newName.trim();
@@ -140,41 +158,64 @@ export default function DartsScreen({ th, go, S, themeName, groupFriends=[] }) {
     if (teamMode) {
       newUnits = [];
       for (let i=0; i<players.length; i+=2) {
-        newUnits.push({ id:`team_${i/2}`, members:[players[i],players[i+1]], position:1, finished:false, finishedWith:null, bullHits:0, bullHitsThisTurn:0, throwerIdx:0 });
+        newUnits.push({ id:`team_${i/2}`, members:[players[i],players[i+1]], position:1, finished:false, finishedWith:null, bullHits:0, bullHitsThisTurn:0, throwerIdx:0, dartsThisTurn:0 });
       }
     } else {
-      newUnits = players.map(p=>({ id:p.id, members:[p], position:1, finished:false, finishedWith:null, bullHits:0, bullHitsThisTurn:0 }));
+      newUnits = players.map(p=>({ id:p.id, members:[p], position:1, finished:false, finishedWith:null, bullHits:0, bullHitsThisTurn:0, dartsThisTurn:0 }));
     }
     setUnits(newUnits);
     setCurrentIdx(0);
     setWinner(null);
     setHistory([]);
+    setPlayerThrows({});
+    setSaved(false);
     setStarted(true);
   }
 
   function targetOf(u) { return u.position<=20 ? u.position : "Bull"; }
 
   function pushHistory() {
-    setHistory(h => [...h, { units: units.map(u=>({...u})), currentIdx, winner }]);
+    setHistory(h => [...h, {
+      units: units.map(u=>({...u})),
+      currentIdx, winner,
+      playerThrows: JSON.parse(JSON.stringify(playerThrows)),
+    }]);
+  }
+
+  function recordThrow(playerId) {
+    setPlayerThrows(prev => {
+      const cur = prev[playerId] || { darts:0, misses:0 };
+      return { ...prev, [playerId]: { ...cur, darts: cur.darts+1 } };
+    });
   }
 
   function hit(mult) {
     if (winner || units.length===0) return;
+    const cur = units[currentIdx];
+    if ((cur.dartsThisTurn||0)>=DARTS_PER_TURN) return;
     pushHistory();
+    const thrower = activeThrower(cur);
+    if (thrower) recordThrow(thrower.id);
     setUnits(prev => {
       const next = prev.map(u=>({...u}));
       const u = next[currentIdx];
       u.position = Math.min(21, u.position+mult);
+      u.dartsThisTurn = (u.dartsThisTurn||0)+1;
       return next;
     });
   }
 
   function hitBull(kind) {
     if (winner || units.length===0) return;
+    const cur = units[currentIdx];
+    if ((cur.dartsThisTurn||0)>=DARTS_PER_TURN) return;
     pushHistory();
+    const thrower = activeThrower(cur);
+    if (thrower) recordThrow(thrower.id);
     setUnits(prev => {
       const next = prev.map(u=>({...u}));
       const u = next[currentIdx];
+      u.dartsThisTurn = (u.dartsThisTurn||0)+1;
       if (kind==="Bullseye") {
         u.finished = true;
         u.finishedWith = "Bullseye";
@@ -197,18 +238,30 @@ export default function DartsScreen({ th, go, S, themeName, groupFriends=[] }) {
   }
 
   function nextTurn() {
-    if (units.length<2) return;
+    if (units.length===0 || winner) return;
     let nextIdx = currentIdx;
     for (let k=1;k<=units.length;k++) {
       const idx = (currentIdx+k) % units.length;
       if (!units[idx].finished) { nextIdx = idx; break; }
     }
-    if (nextIdx===currentIdx) return;
+    const outgoing = units[currentIdx];
+    const missed = Math.max(0, DARTS_PER_TURN-(outgoing.dartsThisTurn||0));
+    const thrower = activeThrower(outgoing);
     pushHistory();
+    if (thrower && missed>0) {
+      setPlayerThrows(prev => {
+        const cur = prev[thrower.id] || { darts:0, misses:0 };
+        return { ...prev, [thrower.id]: { ...cur, misses: cur.misses+missed } };
+      });
+    }
     setUnits(prev => prev.map((u,i)=> {
-      if (i===currentIdx && u.members.length===2) return {...u, throwerIdx: 1-u.throwerIdx};
-      if (i===nextIdx) return {...u, bullHitsThisTurn:0};
-      return u;
+      const isOutgoing = i===currentIdx;
+      const isIncoming = i===nextIdx;
+      if (!isOutgoing && !isIncoming) return u;
+      let nu = { ...u };
+      if (isOutgoing && nu.members.length===2) nu.throwerIdx = 1-nu.throwerIdx;
+      if (isIncoming) { nu.bullHitsThisTurn = 0; nu.dartsThisTurn = 0; }
+      return nu;
     }));
     setCurrentIdx(nextIdx);
   }
@@ -220,6 +273,8 @@ export default function DartsScreen({ th, go, S, themeName, groupFriends=[] }) {
       setUnits(last.units);
       setCurrentIdx(last.currentIdx);
       setWinner(last.winner);
+      setPlayerThrows(last.playerThrows);
+      setSaved(false);
       return h.slice(0,-1);
     });
   }
@@ -229,6 +284,7 @@ export default function DartsScreen({ th, go, S, themeName, groupFriends=[] }) {
   const current = units[currentIdx];
   const pickableFriends = groupFriends.filter(f=>!players.find(p=>p.id===f.id));
   const teamPairs = teamMode ? Array.from({length:Math.floor(players.length/2)}, (_,i)=>[players[i*2],players[i*2+1]]) : [];
+  const dartsLeft = current ? DARTS_PER_TURN-(current.dartsThisTurn||0) : 0;
 
   return (
     <div style={{...S.app,minHeight:"100dvh"}}>
@@ -341,7 +397,8 @@ export default function DartsScreen({ th, go, S, themeName, groupFriends=[] }) {
             {teamMode && current && (
               <p style={{color:th.textDim,fontSize:12,margin:"-2px 0 4px"}}>samen met {current.members.find(m=>m.id!==activeThrower(current)?.id)?.name}</p>
             )}
-            <p style={{color:th.textMid,fontSize:13,margin:"0 0 16px"}}>Doel: <b style={{color:th.gold}}>{current ? targetOf(current) : "-"}</b></p>
+            <p style={{color:th.textMid,fontSize:13,margin:"0 0 4px"}}>Doel: <b style={{color:th.gold}}>{current ? targetOf(current) : "-"}</b></p>
+            <p style={{color:th.textDim,fontSize:12,margin:"0 0 16px"}}>Darts deze beurt: {(current?.dartsThisTurn||0)}/{DARTS_PER_TURN}</p>
             {current && current.position>20 && (
               <p style={{color:th.textDim,fontSize:12,margin:"-10px 0 16px"}}>
                 Bull geraakt: {current.bullHits||0}/3 · deze ronde: {current.bullHitsThisTurn||0}/2
@@ -352,23 +409,26 @@ export default function DartsScreen({ th, go, S, themeName, groupFriends=[] }) {
               <DartBoard target={current ? targetOf(current) : null} th={th}/>
             </div>
 
+            {dartsLeft<=0 && (
+              <p style={{color:th.gold,fontSize:12,margin:"0 0 10px",letterSpacing:1,textTransform:"uppercase"}}>Beurt klaar — druk op volgende</p>
+            )}
             <div style={{display:"flex",gap:8,justifyContent:"center",marginBottom:12,flexWrap:"wrap"}}>
               {current && current.position<=20 ? (
                 <>
-                  <button style={{...S.primary,width:"auto",padding:"13px 22px"}} onClick={()=>hit(1)}>Single</button>
-                  <button style={{...S.primary,width:"auto",padding:"13px 22px"}} onClick={()=>hit(2)}>Double</button>
-                  <button style={{...S.primary,width:"auto",padding:"13px 22px"}} onClick={()=>hit(3)}>Triple</button>
+                  <button style={{...S.primary,width:"auto",padding:"13px 22px"}} disabled={dartsLeft<=0} onClick={()=>hit(1)}>Single</button>
+                  <button style={{...S.primary,width:"auto",padding:"13px 22px"}} disabled={dartsLeft<=0} onClick={()=>hit(2)}>Double</button>
+                  <button style={{...S.primary,width:"auto",padding:"13px 22px"}} disabled={dartsLeft<=0} onClick={()=>hit(3)}>Triple</button>
                 </>
               ) : (
                 <>
-                  <button style={{...S.primary,width:"auto",padding:"13px 22px"}} onClick={()=>hitBull("Bull")}>Bull</button>
-                  <button style={{...S.primary,width:"auto",padding:"13px 22px"}} onClick={()=>hitBull("Bullseye")}>Bulls eye</button>
+                  <button style={{...S.primary,width:"auto",padding:"13px 22px"}} disabled={dartsLeft<=0} onClick={()=>hitBull("Bull")}>Bull</button>
+                  <button style={{...S.primary,width:"auto",padding:"13px 22px"}} disabled={dartsLeft<=0} onClick={()=>hitBull("Bullseye")}>Bulls eye</button>
                 </>
               )}
             </div>
             <div style={{display:"flex",gap:8,justifyContent:"center",marginBottom:20,flexWrap:"wrap"}}>
               <button style={{...S.secondary,width:"auto",padding:"11px 18px"}} disabled={history.length===0} onClick={undo}>↺ Ongedaan maken</button>
-              <button style={{...S.secondary,width:"auto",padding:"11px 18px"}} onClick={nextTurn} disabled={units.length<2}>{teamMode ? "Volgend team ›" : "Volgende speler ›"}</button>
+              <button style={{...S.secondary,width:"auto",padding:"11px 18px"}} onClick={nextTurn}>{teamMode ? "Volgend team ›" : "Volgende speler ›"}</button>
             </div>
 
             <div style={{textAlign:"left"}}>

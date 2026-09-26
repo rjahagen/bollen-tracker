@@ -3,14 +3,16 @@ import Wrap from '../components/Wrap';
 import Avatar from '../components/Avatar';
 import StatPill from '../components/StatPill';
 
-export default function FriendPageScreen({ th, S, themeName, selFriend, friendStats, bollenStats, toepStats, updatePhoto, updateBirthday, deleteFriend, go }) {
+export default function FriendPageScreen({ th, S, themeName, selFriend, friendStats, bollenStats, toepStats, dartsStats, updatePhoto, updateBirthday, deleteFriend, go }) {
   const getBollenSt = id => bollenStats[id]||{games:0,wins:0};
   const getToepSt   = id => toepStats[id]||{games:0,wins:0};
-  const bs=getBollenSt(selFriend.id); const ts=getToepSt(selFriend.id);
-  const tg=bs.games+ts.games; const tw=bs.wins+ts.wins;
+  const getDartsSt  = id => dartsStats[id]||{games:0,wins:0,accuracy:null,avgFinishDarts:null};
+  const bs=getBollenSt(selFriend.id); const ts=getToepSt(selFriend.id); const ds=getDartsSt(selFriend.id);
+  const tg=bs.games+ts.games+ds.games; const tw=bs.wins+ts.wins+ds.wins;
   const pct=tg>0?Math.round(tw/tg*100):0;
   const bPct=bs.games>0?Math.round(bs.wins/bs.games*100):0;
   const tPct=ts.games>0?Math.round(ts.wins/ts.games*100):0;
+  const dPct=ds.games>0?Math.round(ds.wins/ds.games*100):0;
   return (
     <Wrap th={th} S={S} themeName={themeName}>
       <div style={S.header}>
@@ -69,12 +71,30 @@ export default function FriendPageScreen({ th, S, themeName, selFriend, friendSt
           )}
         </div>
         <p style={{...S.label,textAlign:"left",margin:"12px 0 6px"}}>Toepen</p>
-        <div style={{...S.card,display:"flex",justifyContent:"space-around",padding:"14px 8px",margin:"0 0 20px"}}>
+        <div style={{...S.card,display:"flex",justifyContent:"space-around",padding:"14px 8px",margin:"0 0 12px"}}>
           <StatPill label="Gespeeld" value={ts.games} th={th}/>
           <div style={{width:1,background:th.border}}/>
           <StatPill label="Gewonnen" value={ts.wins} th={th}/>
           <div style={{width:1,background:th.border}}/>
           <StatPill label="Win %" value={tPct+"%"} th={th}/>
+        </div>
+        <p style={{...S.label,textAlign:"left",margin:"12px 0 6px"}}>Darts</p>
+        <div style={{...S.card,padding:"14px 8px",margin:"0 0 20px"}}>
+          <div style={{display:"flex",justifyContent:"space-around",marginBottom:ds.games>0?12:0}}>
+            <StatPill label="Gespeeld" value={ds.games} th={th}/>
+            <div style={{width:1,background:th.border}}/>
+            <StatPill label="Gewonnen" value={ds.wins} th={th}/>
+            <div style={{width:1,background:th.border}}/>
+            <StatPill label="Win %" value={dPct+"%"} th={th}/>
+          </div>
+          {ds.games>0&&(<>
+            <div style={{height:1,background:th.border,margin:"0 0 12px"}}/>
+            <div style={{display:"flex",justifyContent:"space-around"}}>
+              <StatPill label="Nauwkeurig" value={ds.accuracy!=null?ds.accuracy+"%":"-"} th={th}/>
+              <div style={{width:1,background:th.border}}/>
+              <StatPill label="Gem. darts" value={ds.avgFinishDarts??"-"} th={th}/>
+            </div>
+          </>)}
         </div>
         {!selFriend.is_preset&&(
           <button style={{...S.secondary,color:"#a04040",borderColor:"#5a2020"}} onClick={()=>deleteFriend(selFriend.id)}>Verwijderen</button>

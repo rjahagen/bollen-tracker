@@ -26,6 +26,7 @@ export default function App() {
   const [friends, setFriends]         = useState([]);
   const [bollenStats, setBollenStats] = useState({});
   const [toepStats, setToepStats]     = useState({});
+  const [dartsStats, setDartsStats]   = useState({});
   const [selFriend, setSelFriend]     = useState(null);
   const [gamePlayers, setGamePlayers] = useState([]);
   const [gameMode, setGameMode]       = useState("bollen");
@@ -116,6 +117,27 @@ export default function App() {
       setToepStats(toep);
     }
     fetchStats();
+  }, []);
+  useEffect(()=>{
+    async function fetchDartsStats() {
+      const { data } = await supabase.from('darts_players').select('player_id, is_winner, darts_thrown, darts_missed');
+      if (!data) return;
+      const agg = {};
+      data.forEach(row => {
+        const s = agg[row.player_id] || { games:0, wins:0, darts:0, misses:0, finishDartsSum:0 };
+        s.games += 1;
+        s.darts += row.darts_thrown||0;
+        s.misses += row.darts_missed||0;
+        if (row.is_winner) { s.wins += 1; s.finishDartsSum += (row.darts_thrown||0)+(row.darts_missed||0); }
+        agg[row.player_id] = s;
+      });
+      Object.values(agg).forEach(s => {
+        s.accuracy = (s.darts+s.misses)>0 ? Math.round(s.darts/(s.darts+s.misses)*100) : null;
+        s.avgFinishDarts = s.wins>0 ? Math.round(s.finishDartsSum/s.wins) : null;
+      });
+      setDartsStats(agg);
+    }
+    fetchDartsStats();
   }, []);
   useEffect(()=>{
     if (screen!=="friendPage"||!selFriend){ setFriendStats(null); return; }
@@ -401,6 +423,29 @@ export default function App() {
     } catch(e) { console.error('Supabase error:', e); }
   }
 
+  async function saveDartsGame(mode, entries) {
+    try {
+      const { data: gameRow, error } = await supabase.from('darts_games').insert({ mode }).select().single();
+      if (error || !gameRow) return;
+      const rows = entries.map(e => ({ darts_game_id: gameRow.id, ...e }));
+      await supabase.from('darts_players').insert(rows);
+      setDartsStats(prev => {
+        const next = { ...prev };
+        entries.forEach(e => {
+          const s = next[e.player_id] ? { ...next[e.player_id] } : { games:0, wins:0, darts:0, misses:0, finishDartsSum:0, accuracy:null, avgFinishDarts:null };
+          s.games += 1;
+          s.darts += e.darts_thrown||0;
+          s.misses += e.darts_missed||0;
+          if (e.is_winner) { s.wins += 1; s.finishDartsSum += (e.darts_thrown||0)+(e.darts_missed||0); }
+          s.accuracy = (s.darts+s.misses)>0 ? Math.round(s.darts/(s.darts+s.misses)*100) : null;
+          s.avgFinishDarts = s.wins>0 ? Math.round(s.finishDartsSum/s.wins) : null;
+          next[e.player_id] = s;
+        });
+        return next;
+      });
+    } catch(e) { console.error('Darts stats save error:', e); }
+  }
+
   // ── Routing ───────────────────────────────────────────────────────────────
   const showProfilePicker = screen==="selectProfile" || (!currentPlayerId && friends.length>0);
   if (showProfilePicker) return (
@@ -466,7 +511,7 @@ export default function App() {
     <FriendPageScreen
       th={th} S={S} themeName={themeName}
       selFriend={selFriend} friendStats={friendStats}
-      bollenStats={bollenStats} toepStats={toepStats}
+      bollenStats={bollenStats} toepStats={toepStats} dartsStats={dartsStats}
       updatePhoto={updatePhoto} updateBirthday={updateBirthday}
       deleteFriend={deleteFriend} go={go}
     />
@@ -556,7 +601,7 @@ export default function App() {
   );
 
   if (screen==="darts") return (
-    <DartsScreen th={th} go={go} S={S} themeName={themeName} groupFriends={groupFriends}/>
+    <DartsScreen th={th} go={go} S={S} themeName={themeName} groupFriends={groupFriends} saveDartsGame={saveDartsGame}/>
   );
 
   return null;
