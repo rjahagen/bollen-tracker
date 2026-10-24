@@ -26,7 +26,7 @@ export const THEMES = {
     textDim:  "rgba(22,33,46,0.55)",
     border:   "rgba(22,33,46,0.12)",
     font:     "'Work Sans','Helvetica Neue',sans-serif",
-    titleFont:"'Anton','Arial Narrow',sans-serif",
+    titleFont:"'Pacifico',cursive",
     bgImage:  null,
     overlay:  null,
     suitBg:   "repeating-linear-gradient(115deg, rgba(22,33,46,0.05) 0 3px, transparent 3px 26px)",
