@@ -11,8 +11,8 @@ function ThemeSwitcher({ themeName, setThemeName, th }) {
         const isZenActive = isActive && key==="zen";
         return (
           <button key={key} onClick={()=>setThemeName(key)} style={{
-            padding:"5px 14px", fontSize:11, letterSpacing:1, textTransform:"uppercase",
-            borderRadius:20, cursor:"pointer", fontFamily:th.font,
+            padding:"5px 14px", fontSize: themeName==="ski"?13:11, letterSpacing: themeName==="ski"?0:1, textTransform: themeName==="ski"?"none":"uppercase",
+            borderRadius:20, cursor:"pointer", fontFamily: themeName==="ski"?th.titleFont:th.font,
             background: isZenActive ? "transparent" : isActive ? th.gold : "transparent",
             color: isZenActive ? "#8b1a1a" : isActive ? th.bg : th.textDim,
             border: `1px solid ${isZenActive ? "#8b1a1a" : isActive ? th.gold : th.border}`,
@@ -98,8 +98,8 @@ export default function HomeScreen({ th, S, themeName, setThemeName, isIPad, cur
       </svg>
       <div style={{position:"relative",textAlign:"center",padding: isIPad ? "40px 32px 48px" : "32px 24px 44px"}}>
         <img src="/Logo-Ski.png" alt="logo" style={{width:isIPad?130:110,height:isIPad?130:110,margin:"0 auto 18px",display:"block",objectFit:"contain",filter:"drop-shadow(0 0 20px rgba(62,127,145,0.5))"}}/>
-        <h1 style={{fontSize:isIPad?40:34,fontWeight:700,letterSpacing:6,textTransform:"uppercase",margin:"0 0 2px",fontFamily:th.titleFont,color:"#F2EEE4"}}>Cards</h1>
-        <p style={{color:"#DE8A3B",fontSize:isIPad?30:26,margin:0,fontFamily:"'Pinyon Script',cursive",lineHeight:1}}>Kaartspellen</p>
+        <h1 style={{fontSize:isIPad?46:40,fontWeight:700,margin:"0 0 2px",fontFamily:th.titleFont,color:"#F2EEE4"}}>Cards</h1>
+        <p style={{color:"#DE8A3B",fontSize:isIPad?24:20,margin:0,fontFamily:th.titleFont,lineHeight:1}}>Kaartspellen</p>
       </div>
       <svg width="100%" height="40" viewBox="0 0 390 40" preserveAspectRatio="none" style={{position:"absolute",left:0,bottom:-1,display:"block"}}>
         <path d="M0 40 L0 14 Q100 0 195 12 Q290 22 390 0 L390 40 Z" fill="#F2EEE4"/>
@@ -166,7 +166,7 @@ export default function HomeScreen({ th, S, themeName, setThemeName, isIPad, cur
           {live&&<span style={{position:"absolute",top:8,right:36,background:themeName==="ski"?"#B23B2E":"#c0392b",color:"#fff",fontSize:9,fontWeight:800,letterSpacing:2,padding:"2px 6px",borderRadius:10,textTransform:"uppercase"}}>LIVE</span>}
           <div style={S.row}>
             <div style={{flex:1}}>
-              <div style={{color:live?"#e74c3c":th.gold,fontWeight:700,fontSize:16,letterSpacing:2,textTransform:"uppercase",fontFamily:th.titleFont}}>{label}</div>
+              <div style={{color:live?"#e74c3c":th.gold,fontWeight:700,fontSize:themeName==="ski"?19:16,letterSpacing:themeName==="ski"?0:2,textTransform:themeName==="ski"?"none":"uppercase",fontFamily:th.titleFont}}>{label}</div>
               <div style={{color:th.textMid,fontSize:12,marginTop:3}}>{sub}</div>
             </div>
             {themeName==="ski"?(

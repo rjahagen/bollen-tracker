@@ -141,7 +141,7 @@ export default function GameScreen({ th, S, themeName, game, setGame, showQuit, 
               <button onClick={()=>setShowQuit(true)} style={{background:"transparent",border:"none",padding:0,cursor:"pointer",lineHeight:0}}>
                 <svg width="18" height="18" viewBox="0 0 22 22"><line x1="4" y1="4" x2="18" y2="18" stroke="#F2EEE4" strokeWidth="2.4" strokeLinecap="round"/><line x1="18" y1="4" x2="4" y2="18" stroke="#F2EEE4" strokeWidth="2.4" strokeLinecap="round"/></svg>
               </button>
-              <h2 style={{fontSize:17,fontFamily:th.titleFont,color:"#F2EEE4",letterSpacing:2,textTransform:"uppercase",margin:0}}>Bollen</h2>
+              <h2 style={{fontSize:20,fontFamily:th.titleFont,color:"#F2EEE4",margin:0}}>Bollen</h2>
               <span style={{fontFamily:"'Space Mono',monospace",fontSize:11,color:"#AFCFDE",letterSpacing:0.5}}>R{game.roundIdx+1}/{game.rounds.length} · {round.cards}🃏</span>
             </div>
             <div style={{position:"relative",marginTop:14}}>
@@ -158,7 +158,7 @@ export default function GameScreen({ th, S, themeName, game, setGame, showQuit, 
             <span style={{marginLeft:"auto",fontSize:12,color:th.textDim,letterSpacing:1}}>R{game.roundIdx+1}/{game.rounds.length} · {round.cards}🃏</span>
           </div>
         )}
-        {showQuit&&<QuitModal th={th} S={S} onCancel={()=>setShowQuit(false)} onConfirm={async ()=>{ setShowQuit(false); await endLiveGame(); setGame(null); go("home"); }}/>}
+        {showQuit&&<QuitModal th={th} S={S} themeName={themeName} onCancel={()=>setShowQuit(false)} onConfirm={async ()=>{ setShowQuit(false); await endLiveGame(); setGame(null); go("home"); }}/>}
         <div style={{flex:1,overflowY:"auto",overflowX:"auto"}}>
           <table style={{width:"100%",borderCollapse:"collapse"}}>
             <thead>
@@ -255,8 +255,8 @@ export default function GameScreen({ th, S, themeName, game, setGame, showQuit, 
               {(!liveGameId||isController)&&(
                 <div style={{display:"flex",gap:8}}>
                   <button onClick={prevCheckPlayer} style={{...ctlSecondary,width:"auto",flex:1}}>‹ Terug</button>
-                  <button onClick={()=>resolvePlayer(false)} style={{flex:1.5,background:"transparent",border:"1px solid #5a2020",borderRadius:4,color:"#a04040",padding:"13px",fontSize:14,fontWeight:700,cursor:"pointer",letterSpacing:2,fontFamily:th.font}}>FOUT</button>
-                  <button onClick={()=>resolvePlayer(true)} style={{flex:1.5,background:"transparent",border:`1px solid ${th.gold}`,borderRadius:4,color:th.gold,padding:"13px",fontSize:14,fontWeight:700,cursor:"pointer",letterSpacing:2,fontFamily:th.font}}>GOED</button>
+                  <button onClick={()=>resolvePlayer(false)} style={{flex:1.5,background:"transparent",border:"1px solid #5a2020",borderRadius:4,color:"#a04040",padding:"13px",fontSize:14,fontWeight:700,cursor:"pointer",letterSpacing:2,fontFamily:isSki?th.titleFont:th.font}}>FOUT</button>
+                  <button onClick={()=>resolvePlayer(true)} style={{flex:1.5,background:"transparent",border:`1px solid ${th.gold}`,borderRadius:4,color:th.gold,padding:"13px",fontSize:14,fontWeight:700,cursor:"pointer",letterSpacing:2,fontFamily:isSki?th.titleFont:th.font}}>GOED</button>
                 </div>
               )}
               {liveGameId&&!isController&&(
