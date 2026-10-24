@@ -59,7 +59,7 @@ export default function ToepenScreen({ th, S, themeName, game, setGame, showQuit
         <div style={{...S.header,flexShrink:0}}>
           <button style={S.backBtn} onClick={()=>setShowQuit(true)}>✕</button>
           <h2 style={{...S.title,fontSize:16}}>Toepen</h2>
-          <span style={{marginLeft:"auto",fontSize:12,color:th.textDim,letterSpacing:1}}>{activeCnt} actief</span>
+          <span style={{marginLeft:"auto",fontSize:12,color:themeName==="ski"?"#AFCFDE":th.textDim,letterSpacing:1}}>{activeCnt} actief</span>
         </div>
         {showQuit&&<QuitModal th={th} S={S} onCancel={()=>setShowQuit(false)} onConfirm={async ()=>{ setShowQuit(false); await endLiveGame(); setGame(null); go("home"); }}/>}
         <div style={{flex:1,overflowY:"auto",padding:"8px 0"}}>
