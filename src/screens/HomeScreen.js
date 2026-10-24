@@ -68,10 +68,51 @@ export default function HomeScreen({ th, S, themeName, setThemeName, isIPad, cur
     { label:"Count Down", sub: nextCountdownInfo(friends, events), action:()=>go("countdown") },
   ];
 
-  const LogoBlock = (
+  const SkiHero = (
+    <div style={{position:"relative",overflow:"hidden",background:"linear-gradient(180deg, #16212E 0%, #2C4A68 65%, #3E7F91 100%)"}}>
+      <div style={{position:"absolute",inset:0,opacity:0.1,backgroundImage:"repeating-linear-gradient(100deg, rgba(255,255,255,0.5) 0 2px, transparent 2px 16px)",pointerEvents:"none"}}/>
+      <svg width="100%" height="100%" viewBox="0 0 390 300" preserveAspectRatio="none" style={{position:"absolute",inset:0}}>
+        <g stroke="#1C344C" strokeWidth="2" opacity="0.55">
+          <line x1="46" y1="20" x2="150" y2="94"/>
+          <line x1="32" y1="42" x2="138" y2="114"/>
+          <line x1="356" y1="12" x2="258" y2="82"/>
+        </g>
+        <g>
+          <polygon points="36,258 20,212 52,212" fill="#16212E"/>
+          <polygon points="36,236 22,188 50,188" fill="#1C344C"/>
+          <rect x="33" y="258" width="6" height="14" fill="#16212E"/>
+          <polygon points="68,270 52,218 84,218" fill="#16212E"/>
+          <polygon points="68,244 56,196 80,196" fill="#1C344C"/>
+          <rect x="65" y="270" width="6" height="16" fill="#16212E"/>
+        </g>
+        <g>
+          <polygon points="340,264 324,216 356,216" fill="#16212E"/>
+          <polygon points="340,240 328,192 352,192" fill="#1C344C"/>
+          <rect x="337" y="264" width="6" height="15" fill="#16212E"/>
+        </g>
+        <g fill="#B23B2E">
+          <rect x="182" y="110" width="4" height="12"/>
+          <rect x="194" y="116" width="4" height="12"/>
+          <rect x="207" y="105" width="4" height="12"/>
+        </g>
+      </svg>
+      <div style={{position:"relative",textAlign:"center",padding: isIPad ? "40px 32px 48px" : "32px 24px 44px"}}>
+        <div style={{width:isIPad?120:100,height:isIPad?120:100,margin:"0 auto 18px",borderRadius:18,overflow:"hidden",boxShadow:"0 0 24px rgba(62,127,145,0.45)",background:"#1F3246"}}>
+          <img src="/Logo-Ski.png" alt="logo" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+        </div>
+        <h1 style={{fontSize:isIPad?40:34,fontWeight:700,letterSpacing:6,textTransform:"uppercase",margin:"0 0 4px",fontFamily:th.titleFont,color:"#F2EEE4"}}>Cards</h1>
+        <p style={{color:"#AFCFDE",fontSize:11,letterSpacing:3,textTransform:"uppercase",margin:0,fontFamily:"'Space Mono',monospace"}}>Kaartspellen</p>
+      </div>
+      <svg width="100%" height="40" viewBox="0 0 390 40" preserveAspectRatio="none" style={{position:"absolute",left:0,bottom:-1,display:"block"}}>
+        <path d="M0 40 L0 14 Q100 0 195 12 Q290 22 390 0 L390 40 Z" fill="#F2EEE4"/>
+      </svg>
+    </div>
+  );
+
+  const LogoBlock = themeName==="ski" ? SkiHero : (
     <div style={{textAlign:"center",padding: isIPad ? "40px 32px 24px" : "32px 24px 20px"}}>
       {themeName==="wsw"&&<style>{`@keyframes wswTitleGlow{0%{background-position:0% center}100%{background-position:300% center}}@media (prefers-reduced-motion: reduce){.wsw-title-glow{animation:none!important}}`}</style>}
-      <div style={{width:isIPad?120:100,height:isIPad?120:100,margin:"0 auto 18px",borderRadius:18,border:`1px solid ${th.border}`,overflow:"hidden",boxShadow:themeName==="zen"?"none":themeName==="wsw"?"0 0 28px rgba(255,46,230,0.35), 0 0 50px rgba(0,240,255,0.18)":themeName==="ski"?"0 0 24px rgba(62,127,145,0.35)":"0 0 24px rgba(207,157,123,0.12)",background:th.surface}}>
+      <div style={{width:isIPad?120:100,height:isIPad?120:100,margin:"0 auto 18px",borderRadius:18,border:`1px solid ${th.border}`,overflow:"hidden",boxShadow:themeName==="zen"?"none":themeName==="wsw"?"0 0 28px rgba(255,46,230,0.35), 0 0 50px rgba(0,240,255,0.18)":"0 0 24px rgba(207,157,123,0.12)",background:th.surface}}>
         {themeName==="zen"?(
           <svg viewBox="0 0 100 100" style={{width:"100%",height:"100%"}} xmlns="http://www.w3.org/2000/svg">
             <rect width="100" height="100" fill="#faf7f2"/>
@@ -110,7 +151,7 @@ export default function HomeScreen({ th, S, themeName, setThemeName, isIPad, cur
             <circle cx="73" cy="79" r="1.8" fill="#7f5bff" filter="url(#wswLogoGlow)"/>
           </svg>
         ):(
-          <img src={themeName==="ski"?"/Logo-Ski.png":"/Logo-Normal.jpg"} alt="logo" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+          <img src="/Logo-Normal.jpg" alt="logo" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
         )}
       </div>
       <h1 className={themeName==="wsw"?"wsw-title-glow":undefined} style={{fontSize:isIPad?40:34,fontWeight:700,letterSpacing:6,textTransform:"uppercase",margin:"0 0 4px",fontFamily:th.titleFont,...(themeName==="wsw"?{background:"linear-gradient(90deg,#ff2ee6,#7f5bff,#00f0ff,#ff2ee6)",backgroundSize:"300% auto",WebkitBackgroundClip:"text",backgroundClip:"text",color:"transparent",textShadow:"0 0 30px rgba(255,46,230,0.45)",animation:"wswTitleGlow 6s linear infinite"}:{color:th.gold})}}>Cards</h1>
@@ -121,15 +162,20 @@ export default function HomeScreen({ th, S, themeName, setThemeName, isIPad, cur
 
   const MenuBlock = (
     <div style={{padding: isIPad ? "0 24px 32px" : "0 16px 8px"}}>
+      {themeName==="ski"&&<div style={{padding:"16px 0 4px"}}><ThemeSwitcher themeName={themeName} setThemeName={setThemeName} th={th}/></div>}
       {menuItems.map(({label,sub,action,accentBorder,live})=>(
         <div key={label} style={{...S.card,cursor:"pointer",marginBottom:8,border:accentBorder||`1px solid ${th.border}`,position:"relative"}} onClick={action}>
-          {live&&<span style={{position:"absolute",top:8,right:36,background:"#c0392b",color:"#fff",fontSize:9,fontWeight:800,letterSpacing:2,padding:"2px 6px",borderRadius:10,textTransform:"uppercase"}}>LIVE</span>}
+          {live&&<span style={{position:"absolute",top:8,right:36,background:themeName==="ski"?"#B23B2E":"#c0392b",color:"#fff",fontSize:9,fontWeight:800,letterSpacing:2,padding:"2px 6px",borderRadius:10,textTransform:"uppercase"}}>LIVE</span>}
           <div style={S.row}>
             <div style={{flex:1}}>
               <div style={{color:live?"#e74c3c":th.gold,fontWeight:700,fontSize:16,letterSpacing:2,textTransform:"uppercase",fontFamily:th.titleFont}}>{label}</div>
               <div style={{color:th.textMid,fontSize:12,marginTop:3}}>{sub}</div>
             </div>
-            <div style={{color:th.textDim,fontSize:20}}>›</div>
+            {themeName==="ski"?(
+              <svg width="15" height="15" viewBox="0 0 16 16"><polygon points="4,2 12,8 4,14" fill="none" stroke="#2C4A68" strokeWidth="2.4" strokeLinejoin="round" strokeLinecap="round"/></svg>
+            ):(
+              <div style={{color:th.textDim,fontSize:20}}>›</div>
+            )}
           </div>
         </div>
       ))}
