@@ -66,11 +66,11 @@ export default   function PollsScreen({ th, go, supabase, themeName, S, currentP
       {themeName==="zen"&&<><style>{ZEN_STYLE}</style><ZenPaper/></>}
       {S.overlay&&<div style={S.overlay}/>}
       <div style={S.wrap}>
-        <div style={{display:"flex",alignItems:"center",gap:10,padding:"14px 16px",borderBottom:`1px solid ${th.border}`}}>
+        <div style={{display:"flex",alignItems:"center",gap:10,padding:"14px 16px",borderBottom:themeName==="ski"?"none":`1px solid ${th.border}`,backgroundImage:themeName==="ski"?"repeating-linear-gradient(100deg, rgba(255,255,255,0.08) 0 2px, transparent 2px 16px), linear-gradient(135deg, #16212E, #2C4A68)":undefined}}>
           <button style={S.backBtn} onClick={()=>go("home")}>‹</button>
           <div style={{flex:1}}>
             <h2 style={{...S.title,margin:0}}>Polls</h2>
-            {currentGroup&&<div style={{color:th.textDim,fontSize:10,letterSpacing:2,textTransform:"uppercase",marginTop:1}}>{currentGroup.name}</div>}
+            {currentGroup&&<div style={{color:themeName==="ski"?"#AFCFDE":th.textDim,fontSize:10,letterSpacing:2,textTransform:"uppercase",marginTop:1}}>{currentGroup.name}</div>}
           </div>
           <button style={{...S.primary,width:"auto",padding:"8px 14px",fontSize:12}} onClick={()=>setShowCreate(s=>!s)}>+ Nieuwe poll</button>
         </div>

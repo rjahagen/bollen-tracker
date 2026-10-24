@@ -97,11 +97,9 @@ export default function HomeScreen({ th, S, themeName, setThemeName, isIPad, cur
         </g>
       </svg>
       <div style={{position:"relative",textAlign:"center",padding: isIPad ? "40px 32px 48px" : "32px 24px 44px"}}>
-        <div style={{width:isIPad?120:100,height:isIPad?120:100,margin:"0 auto 18px",borderRadius:18,overflow:"hidden",boxShadow:"0 0 24px rgba(62,127,145,0.45)",background:"#1F3246"}}>
-          <img src="/Logo-Ski.png" alt="logo" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
-        </div>
-        <h1 style={{fontSize:isIPad?40:34,fontWeight:700,letterSpacing:6,textTransform:"uppercase",margin:"0 0 4px",fontFamily:th.titleFont,color:"#F2EEE4"}}>Cards</h1>
-        <p style={{color:"#AFCFDE",fontSize:11,letterSpacing:3,textTransform:"uppercase",margin:0,fontFamily:"'Space Mono',monospace"}}>Kaartspellen</p>
+        <img src="/Logo-Ski.png" alt="logo" style={{width:isIPad?130:110,height:isIPad?130:110,margin:"0 auto 18px",display:"block",objectFit:"contain",filter:"drop-shadow(0 0 20px rgba(62,127,145,0.5))"}}/>
+        <h1 style={{fontSize:isIPad?40:34,fontWeight:700,letterSpacing:6,textTransform:"uppercase",margin:"0 0 2px",fontFamily:th.titleFont,color:"#F2EEE4"}}>Cards</h1>
+        <p style={{color:"#DE8A3B",fontSize:isIPad?30:26,margin:0,fontFamily:"'Pinyon Script',cursive",lineHeight:1}}>Kaartspellen</p>
       </div>
       <svg width="100%" height="40" viewBox="0 0 390 40" preserveAspectRatio="none" style={{position:"absolute",left:0,bottom:-1,display:"block"}}>
         <path d="M0 40 L0 14 Q100 0 195 12 Q290 22 390 0 L390 40 Z" fill="#F2EEE4"/>
