@@ -71,7 +71,7 @@ export default function HomeScreen({ th, S, themeName, setThemeName, isIPad, cur
   const LogoBlock = (
     <div style={{textAlign:"center",padding: isIPad ? "40px 32px 24px" : "32px 24px 20px"}}>
       {themeName==="wsw"&&<style>{`@keyframes wswTitleGlow{0%{background-position:0% center}100%{background-position:300% center}}@media (prefers-reduced-motion: reduce){.wsw-title-glow{animation:none!important}}`}</style>}
-      <div style={{width:isIPad?120:100,height:isIPad?120:100,margin:"0 auto 18px",borderRadius:18,border:`1px solid ${th.border}`,overflow:"hidden",boxShadow:themeName==="zen"?"none":themeName==="wsw"?"0 0 28px rgba(255,46,230,0.35), 0 0 50px rgba(0,240,255,0.18)":"0 0 24px rgba(207,157,123,0.12)",background:th.surface}}>
+      <div style={{width:isIPad?120:100,height:isIPad?120:100,margin:"0 auto 18px",borderRadius:18,border:`1px solid ${th.border}`,overflow:"hidden",boxShadow:themeName==="zen"?"none":themeName==="wsw"?"0 0 28px rgba(255,46,230,0.35), 0 0 50px rgba(0,240,255,0.18)":themeName==="ski"?"0 0 24px rgba(62,127,145,0.35)":"0 0 24px rgba(207,157,123,0.12)",background:th.surface}}>
         {themeName==="zen"?(
           <svg viewBox="0 0 100 100" style={{width:"100%",height:"100%"}} xmlns="http://www.w3.org/2000/svg">
             <rect width="100" height="100" fill="#faf7f2"/>
@@ -110,7 +110,7 @@ export default function HomeScreen({ th, S, themeName, setThemeName, isIPad, cur
             <circle cx="73" cy="79" r="1.8" fill="#7f5bff" filter="url(#wswLogoGlow)"/>
           </svg>
         ):(
-          <img src={themeName==="jazz"?"/Logo-Jazz.JPG":"/Logo-Normal.jpg"} alt="logo" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+          <img src={themeName==="ski"?"/Logo-Ski.png":"/Logo-Normal.jpg"} alt="logo" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
         )}
       </div>
       <h1 className={themeName==="wsw"?"wsw-title-glow":undefined} style={{fontSize:isIPad?40:34,fontWeight:700,letterSpacing:6,textTransform:"uppercase",margin:"0 0 4px",fontFamily:th.titleFont,...(themeName==="wsw"?{background:"linear-gradient(90deg,#ff2ee6,#7f5bff,#00f0ff,#ff2ee6)",backgroundSize:"300% auto",WebkitBackgroundClip:"text",backgroundClip:"text",color:"transparent",textShadow:"0 0 30px rgba(255,46,230,0.45)",animation:"wswTitleGlow 6s linear infinite"}:{color:th.gold})}}>Cards</h1>
