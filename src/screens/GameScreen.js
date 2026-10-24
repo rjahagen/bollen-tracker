@@ -112,16 +112,52 @@ export default function GameScreen({ th, S, themeName, game, setGame, showQuit, 
   const isExempt=round.cards===1&&(game.roundIdx===0||game.roundIdx===game.rounds.length-1);
   const forbidden=isLastBid&&!isExempt?round.cards-bidSoFar:null;
 
+  const maxCards=Math.max(...game.rounds.map(r=>r.cards));
+  const rpW=360, rpTop=4, rpBottom=22;
+  const rpX=i=>game.rounds.length>1?(i/(game.rounds.length-1))*rpW:rpW/2;
+  const rpY=cards=>rpBottom-(cards/maxCards)*(rpBottom-rpTop);
+  const rpPoints=game.rounds.map((r,i)=>`${rpX(i).toFixed(1)},${rpY(r.cards).toFixed(1)}`).join(" ");
+
+  const isSki=themeName==="ski";
+  const ctlBorder=isSki?"rgba(175,207,222,0.25)":th.border;
+  const ctlLabel=isSki?"#AFCFDE":th.textDim;
+  const ctlName=isSki?"#F2EEE4":th.gold;
+  const ctlMid=isSki?"#AFCFDE":th.textMid;
+  const ctlText=isSki?"#F2EEE4":th.text;
+  const ctlBoxBg=isSki?"#233447":th.surface2;
+  const ctlSecondary={...S.secondary,border:`1px solid ${ctlBorder}`,color:ctlMid};
+
   return (
     <div style={{...S.app,display:"flex",flexDirection:"column",height:"100dvh"}}>
       {themeName==="zen"&&<><style>{ZEN_STYLE}</style><ZenPaper/></>}
       {S.overlay&&<div style={S.overlay}/>}
       <div style={{...S.wrap,display:"flex",flexDirection:"column",height:"100dvh"}}>
-        <div style={{...S.header,flexShrink:0}}>
-          <button style={S.backBtn} onClick={()=>setShowQuit(true)}>✕</button>
-          <h2 style={{...S.title,fontSize:16}}>Bollen</h2>
-          <span style={{marginLeft:"auto",fontSize:12,color:th.textDim,letterSpacing:1}}>R{game.roundIdx+1}/{game.rounds.length} · {round.cards}🃏</span>
-        </div>
+        {themeName==="ski"?(
+          <div style={{position:"relative",flexShrink:0,background:"linear-gradient(135deg, #16212E, #2C4A68)",padding:"14px 16px 14px",overflow:"hidden"}}>
+            <svg width="100%" height="100%" viewBox="0 0 390 110" preserveAspectRatio="none" style={{position:"absolute",inset:0,opacity:0.16}}>
+              <polygon points="0,110 90,38 160,86 230,18 310,76 390,48 390,110" fill="#AFCFDE"/>
+            </svg>
+            <div style={{position:"relative",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+              <button onClick={()=>setShowQuit(true)} style={{background:"transparent",border:"none",padding:0,cursor:"pointer",lineHeight:0}}>
+                <svg width="18" height="18" viewBox="0 0 22 22"><line x1="4" y1="4" x2="18" y2="18" stroke="#F2EEE4" strokeWidth="2.4" strokeLinecap="round"/><line x1="18" y1="4" x2="4" y2="18" stroke="#F2EEE4" strokeWidth="2.4" strokeLinecap="round"/></svg>
+              </button>
+              <h2 style={{fontSize:17,fontFamily:th.titleFont,color:"#F2EEE4",letterSpacing:2,textTransform:"uppercase",margin:0}}>Bollen</h2>
+              <span style={{fontFamily:"'Space Mono',monospace",fontSize:11,color:"#AFCFDE",letterSpacing:0.5}}>R{game.roundIdx+1}/{game.rounds.length} · {round.cards}🃏</span>
+            </div>
+            <div style={{position:"relative",marginTop:14}}>
+              <svg width="100%" height="24" viewBox={`0 0 ${rpW} 26`} preserveAspectRatio="none">
+                <polyline points={rpPoints} fill="none" stroke="#3E7F91" strokeWidth="2"/>
+                <circle cx={rpX(game.roundIdx)} cy={rpY(round.cards)} r="5" fill="#DE8A3B" stroke="#16212E" strokeWidth="1.5"/>
+              </svg>
+            </div>
+          </div>
+        ):(
+          <div style={{...S.header,flexShrink:0}}>
+            <button style={S.backBtn} onClick={()=>setShowQuit(true)}>✕</button>
+            <h2 style={{...S.title,fontSize:16}}>Bollen</h2>
+            <span style={{marginLeft:"auto",fontSize:12,color:th.textDim,letterSpacing:1}}>R{game.roundIdx+1}/{game.rounds.length} · {round.cards}🃏</span>
+          </div>
+        )}
         {showQuit&&<QuitModal th={th} S={S} onCancel={()=>setShowQuit(false)} onConfirm={async ()=>{ setShowQuit(false); await endLiveGame(); setGame(null); go("home"); }}/>}
         <div style={{flex:1,overflowY:"auto",overflowX:"auto"}}>
           <table style={{width:"100%",borderCollapse:"collapse"}}>
@@ -150,8 +186,8 @@ export default function GameScreen({ th, S, themeName, game, setGame, showQuit, 
                       const hasBid=isCur&&sc===null&&game.bids[bidIdx]!==undefined&&(game.step===2||bidIdx<game.bidPos);
                       const dBid=hasBid?`(${game.bids[bidIdx]})`:null;
                       return (
-                        <td key={pi} style={{textAlign:"center",padding:"4px 2px",fontWeight:sc!==null?700:400,color:sc===null?(dBid?th.gold:"rgba(255,255,255,0.15)"):sc<0?"#8a3030":th.gold,fontSize:15}}>
-                          {sc!==null?(sc<0?(themeName==="wsw"?"✨":"●"):sc):(dBid||"·")}
+                        <td key={pi} style={{textAlign:"center",padding:"4px 2px",fontWeight:sc!==null?700:400,color:sc===null?(dBid?th.gold:isSki?"rgba(22,33,46,0.15)":"rgba(255,255,255,0.15)"):sc<0?(isSki?"#B23B2E":"#8a3030"):th.gold,fontSize:15}}>
+                          {sc!==null?(sc<0?(themeName==="wsw"?"✨":isSki?"❄":"●"):sc):(dBid||"·")}
                         </td>
                       );
                     })}
@@ -167,7 +203,7 @@ export default function GameScreen({ th, S, themeName, game, setGame, showQuit, 
             </tbody>
           </table>
         </div>
-        <div style={{background:th.surface,borderTop:`1px solid ${th.border}`,padding:"12px 16px 20px",flexShrink:0}}>
+        <div style={{background:isSki?"#16212E":th.surface,borderTop:isSki?"none":`1px solid ${th.border}`,borderRadius:isSki?"20px 20px 0 0":0,padding:"12px 16px 20px",flexShrink:0}}>
           {roundNote&&(
             <div style={{textAlign:"center",marginBottom:12,padding:"8px 12px",borderRadius:4,background:roundNote.type==="error"?"rgba(140,30,30,0.18)":"rgba(180,120,0,0.15)",border:`1px solid ${roundNote.type==="error"?"#7a3030":"#8a6020"}`,color:roundNote.type==="error"?"#cc6060":"#c8a060",fontSize:13,fontWeight:700,letterSpacing:1}}>
               {roundNote.text}
@@ -178,30 +214,30 @@ export default function GameScreen({ th, S, themeName, game, setGame, showQuit, 
               <div style={{...S.row,marginBottom:10}}>
                 <Avatar player={richPlayer(curPlayer)} size={42} th={th} style={{border:`1px solid ${th.gold}`}}/>
                 <div style={{flex:1}}>
-                  <div style={{fontSize:11,color:th.textDim,letterSpacing:2,textTransform:"uppercase"}}>Bieden — {game.bidPos+1}/{n}</div>
-                  <div style={{fontSize:17,fontWeight:700,color:th.gold,letterSpacing:1}}>{curPlayer.name}</div>
+                  <div style={{fontSize:11,color:ctlLabel,letterSpacing:2,textTransform:"uppercase"}}>Bieden — {game.bidPos+1}/{n}</div>
+                  <div style={{fontSize:17,fontWeight:700,color:ctlName,letterSpacing:1}}>{curPlayer.name}</div>
                   {forbidden!==null&&forbidden>=0&&<div style={{fontSize:11,color:"#8a3030",letterSpacing:1}}>⚠ {forbidden} is verboden</div>}
                 </div>
               </div>
               {(!liveGameId||isController)&&(
                 <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:20,marginBottom:10}}>
-                  <button onClick={()=>setBid(-1)} style={{width:48,height:48,borderRadius:4,background:"transparent",border:`1px solid ${th.border}`,color:th.gold,fontSize:22,cursor:"pointer"}}>−</button>
-                  <div style={{width:72,height:72,borderRadius:4,background:th.surface2,border:`1px solid ${th.gold}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:38,fontWeight:800,color:th.text}}>{game.bids[game.bidPos]??0}</div>
-                  <button onClick={()=>setBid(1)} style={{width:48,height:48,borderRadius:4,background:"transparent",border:`1px solid ${th.border}`,color:th.gold,fontSize:22,cursor:"pointer"}}>+</button>
+                  <button onClick={()=>setBid(-1)} style={{width:48,height:48,borderRadius:4,background:"transparent",border:`1px solid ${ctlBorder}`,color:th.gold,fontSize:22,cursor:"pointer"}}>−</button>
+                  <div style={{width:72,height:72,borderRadius:4,background:ctlBoxBg,border:`1px solid ${th.gold}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:38,fontWeight:800,color:isSki?th.gold:th.text}}>{game.bids[game.bidPos]??0}</div>
+                  <button onClick={()=>setBid(1)} style={{width:48,height:48,borderRadius:4,background:"transparent",border:`1px solid ${ctlBorder}`,color:th.gold,fontSize:22,cursor:"pointer"}}>+</button>
                 </div>
               )}
               {liveGameId&&!isController&&(
                 <>
-                  <div style={{textAlign:"center",padding:"8px 0 12px",color:th.textMid,fontSize:13,letterSpacing:1}}>Bod: {game.bids[game.bidPos]??0}</div>
+                  <div style={{textAlign:"center",padding:"8px 0 12px",color:ctlMid,fontSize:13,letterSpacing:1}}>Bod: {game.bids[game.bidPos]??0}</div>
                   <div style={{display:"flex",gap:8}}>
-                    <button onClick={refreshGameState} style={{...S.secondary,width:"auto",flex:1}}>↻ Vernieuwen</button>
+                    <button onClick={refreshGameState} style={{...ctlSecondary,width:"auto",flex:1}}>↻ Vernieuwen</button>
                     <button onClick={takeOverControls} style={{...S.primary,flex:1}}>Overnemen</button>
                   </div>
                 </>
               )}
               {(!liveGameId||isController)&&(
                 <div style={{display:"flex",gap:8}}>
-                  <button onClick={prevBidder} style={{...S.secondary,width:"auto",flex:1}} disabled={game.step===1&&game.bidPos===0&&game.roundIdx===0}>‹ Terug</button>
+                  <button onClick={prevBidder} style={{...ctlSecondary,width:"auto",flex:1}} disabled={game.step===1&&game.bidPos===0&&game.roundIdx===0}>‹ Terug</button>
                   <button onClick={nextBidder} style={{...S.primary,flex:2}}>Volgende ›</button>
                 </div>
               )}
@@ -211,21 +247,21 @@ export default function GameScreen({ th, S, themeName, game, setGame, showQuit, 
               <div style={{...S.row,marginBottom:10}}>
                 <Avatar player={richPlayer(curPlayer)} size={42} th={th} style={{border:`1px solid ${th.gold}`}}/>
                 <div style={{flex:1}}>
-                  <div style={{fontSize:11,color:th.textDim,letterSpacing:2,textTransform:"uppercase"}}>Controleren — {game.checkPos+1}/{n}</div>
-                  <div style={{fontSize:17,fontWeight:700,color:th.gold,letterSpacing:1}}>{curPlayer.name}</div>
-                  <div style={{fontSize:13,color:th.textMid}}>Geboden: <strong style={{color:th.text}}>{game.bids[game.checkPos]??0}</strong>{(()=>{const tot=game.bids.reduce((a,b)=>a+(b??0),0);const cards=game.rounds[game.roundIdx].cards;const diff=cards-tot;if(diff===0)return <span style={{color:"#7a9a60",marginLeft:8,fontSize:11,letterSpacing:1,textTransform:"uppercase"}}>Precies</span>;return <span style={{color:th.textDim,marginLeft:8,fontSize:11,letterSpacing:1}}>{Math.abs(diff)} {diff>0?"onderboden":"overboden"}</span>;})()}</div>
+                  <div style={{fontSize:11,color:ctlLabel,letterSpacing:2,textTransform:"uppercase"}}>Controleren — {game.checkPos+1}/{n}</div>
+                  <div style={{fontSize:17,fontWeight:700,color:ctlName,letterSpacing:1}}>{curPlayer.name}</div>
+                  <div style={{fontSize:13,color:ctlMid}}>Geboden: <strong style={{color:ctlText}}>{game.bids[game.checkPos]??0}</strong>{(()=>{const tot=game.bids.reduce((a,b)=>a+(b??0),0);const cards=game.rounds[game.roundIdx].cards;const diff=cards-tot;if(diff===0)return <span style={{color:"#7a9a60",marginLeft:8,fontSize:11,letterSpacing:1,textTransform:"uppercase"}}>Precies</span>;return <span style={{color:ctlLabel,marginLeft:8,fontSize:11,letterSpacing:1}}>{Math.abs(diff)} {diff>0?"onderboden":"overboden"}</span>;})()}</div>
                 </div>
               </div>
               {(!liveGameId||isController)&&(
                 <div style={{display:"flex",gap:8}}>
-                  <button onClick={prevCheckPlayer} style={{...S.secondary,width:"auto",flex:1}}>‹ Terug</button>
+                  <button onClick={prevCheckPlayer} style={{...ctlSecondary,width:"auto",flex:1}}>‹ Terug</button>
                   <button onClick={()=>resolvePlayer(false)} style={{flex:1.5,background:"transparent",border:"1px solid #5a2020",borderRadius:4,color:"#a04040",padding:"13px",fontSize:14,fontWeight:700,cursor:"pointer",letterSpacing:2,fontFamily:th.font}}>FOUT</button>
                   <button onClick={()=>resolvePlayer(true)} style={{flex:1.5,background:"transparent",border:`1px solid ${th.gold}`,borderRadius:4,color:th.gold,padding:"13px",fontSize:14,fontWeight:700,cursor:"pointer",letterSpacing:2,fontFamily:th.font}}>GOED</button>
                 </div>
               )}
               {liveGameId&&!isController&&(
                 <div style={{display:"flex",gap:8}}>
-                  <button onClick={refreshGameState} style={{...S.secondary,width:"auto",flex:1}}>↻ Vernieuwen</button>
+                  <button onClick={refreshGameState} style={{...ctlSecondary,width:"auto",flex:1}}>↻ Vernieuwen</button>
                   <button onClick={takeOverControls} style={{...S.primary,flex:1}}>Overnemen</button>
                 </div>
               )}
