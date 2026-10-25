@@ -65,7 +65,7 @@ export default function HomeScreen({ th, S, themeName, setThemeName, isIPad, cur
     { label:"Spelregels", sub:"Regels voor Bollen, Toepen en Around The World", action:()=>go("spelregels") },
     { label:"Vrienden",   sub: currentGroup ? `${groupFriends.length} vrienden · ${currentGroup.name}` : `${friends.length} vrienden`, action:()=>go("friends") },
     { label:"Polls",      sub: currentGroup ? `Polls voor ${currentGroup.name}` : "Stem op vragen van de groep", action:()=>go("polls") },
-    { label:"Count Down", sub: nextCountdownInfo(friends, events), action:()=>go("countdown") },
+    { label:"Count Down", sub: nextCountdownInfo(groupFriends, events), action:()=>go("countdown") },
   ];
 
   const SkiHero = (

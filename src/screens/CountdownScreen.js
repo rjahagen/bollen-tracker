@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import ZenPaper from '../components/ZenPaper';
 
-export default function CountdownScreen({ th, go, supabase, S, friends, events, setEvents, themeName }) {
+export default function CountdownScreen({ th, go, supabase, S, friends, events, setEvents, currentGroupId, currentGroup, themeName }) {
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState("");
   const [newDate, setNewDate] = useState("");
@@ -29,7 +29,7 @@ export default function CountdownScreen({ th, go, supabase, S, friends, events, 
 
   async function addEvent() {
     if (!newName.trim()||!newDate) return;
-    const {data} = await supabase.from('events').insert({name:newName.trim(),event_date:newDate,is_yearly:newYearly}).select().single();
+    const {data} = await supabase.from('events').insert({name:newName.trim(),event_date:newDate,is_yearly:newYearly,group_id:currentGroupId||null}).select().single();
     if (data) setEvents(evs=>[...evs,data]);
     setShowAdd(false); setNewName(""); setNewDate(""); setNewYearly(false);
   }
@@ -74,7 +74,10 @@ export default function CountdownScreen({ th, go, supabase, S, friends, events, 
       <div style={S.wrap}>
         <div style={S.header}>
           <button style={S.backBtn} onClick={()=>go("home")}>‹</button>
-          <h2 style={S.title}>Count Down</h2>
+          <div style={{flex:1}}>
+            <h2 style={{...S.title,margin:0}}>Count Down</h2>
+            {currentGroup&&<div style={{color:themeName==="ski"?"#AFCFDE":th.textDim,fontSize:10,letterSpacing:2,textTransform:"uppercase",marginTop:1}}>{currentGroup.name}</div>}
+          </div>
         </div>
         <div style={{padding:"8px 16px 96px"}}>
           {past.length>0&&(
