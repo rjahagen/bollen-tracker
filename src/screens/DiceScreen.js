@@ -10,16 +10,15 @@ const DICE_PIPS = {
   6: [[0,0],[0,2],[1,0],[1,2],[2,0],[2,2]],
 };
 
-function DieFace({ value, th, size=56, themeName }) {
+function DieFace({ value, th, size=56 }) {
   const active = value ? DICE_PIPS[value] : [];
-  const isSki = themeName==="ski";
   return (
     <div style={{
       width:size, height:size, borderRadius:size*0.18, boxSizing:"border-box",
       display:"grid", gridTemplateColumns:"repeat(3,1fr)", gridTemplateRows:"repeat(3,1fr)",
       padding:size*0.14,
-      background: value ? (isSki ? "#2C4A68" : "#f5f5f0") : "transparent",
-      border: value ? (isSki ? "1px solid #3E7F91" : "1px solid rgba(0,0,0,0.15)") : `1px dashed ${th.border}`,
+      background: value ? "#f5f5f0" : "transparent",
+      border: value ? "1px solid rgba(0,0,0,0.15)" : `1px dashed ${th.border}`,
       boxShadow: value ? "0 2px 6px rgba(0,0,0,0.3)" : "none",
     }}>
       {Array.from({length:9}).map((_,i)=>{
@@ -27,7 +26,7 @@ function DieFace({ value, th, size=56, themeName }) {
         const on = active.some(([ar,ac])=>ar===r&&ac===c);
         return (
           <div key={i} style={{display:"flex",alignItems:"center",justifyContent:"center"}}>
-            {on && <div style={{width:"62%",height:"62%",borderRadius:"50%",background:isSki?"#F2EEE4":"#1a1a1a"}}/>}
+            {on && <div style={{width:"62%",height:"62%",borderRadius:"50%",background:"#1a1a1a"}}/>}
           </div>
         );
       })}
@@ -177,9 +176,11 @@ export default function DiceScreen({ th, go, S, themeName }) {
             className={rolling?"dice-dome-rolling":undefined}
             style={{
               width:240,height:240,borderRadius:"50%",margin:"0 auto 18px",cursor:rolling?"default":"pointer",
-              background:`radial-gradient(circle at 35% 28%, ${th.surface2}, ${th.surface} 60%, ${th.bg} 100%)`,
-              border:`2px solid ${th.border}`,
-              boxShadow:`inset 0 10px 26px rgba(0,0,0,0.35), inset 0 -6px 14px rgba(255,255,255,0.06), 0 0 0 6px ${th.surface2}`,
+              background: themeName==="ski"
+                ? `radial-gradient(circle at 35% 28%, #3E7F91, #2C4A68 60%, #16212E 100%)`
+                : `radial-gradient(circle at 35% 28%, ${th.surface2}, ${th.surface} 60%, ${th.bg} 100%)`,
+              border:`2px solid ${themeName==="ski"?"#3E7F91":th.border}`,
+              boxShadow:`inset 0 10px 26px rgba(0,0,0,0.35), inset 0 -6px 14px rgba(255,255,255,0.06), 0 0 0 6px ${themeName==="ski"?"#2C4A68":th.surface2}`,
               display:"flex",alignItems:"center",justifyContent:"center",position:"relative",
               userSelect:"none",
             }}
@@ -198,13 +199,13 @@ export default function DiceScreen({ th, go, S, themeName }) {
                       filter: locked[i] ? `drop-shadow(0 0 7px ${th.gold})` : "none",
                     }}
                   >
-                    <DieFace value={v} th={th} size={dieSize} themeName={themeName}/>
+                    <DieFace value={v} th={th} size={dieSize}/>
                   </button>
                 );
               })}
             </div>
             {!hasRolled && !rolling && (
-              <div style={{position:"absolute",bottom:20,left:0,right:0,textAlign:"center",fontSize:11,letterSpacing:2,textTransform:"uppercase",color:th.textDim}}>
+              <div style={{position:"absolute",bottom:20,left:0,right:0,textAlign:"center",fontSize:11,letterSpacing:2,textTransform:"uppercase",color:themeName==="ski"?"#AFCFDE":th.textDim}}>
                 Tik om te gooien
               </div>
             )}
