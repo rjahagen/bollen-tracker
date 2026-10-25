@@ -10,15 +10,16 @@ const DICE_PIPS = {
   6: [[0,0],[0,2],[1,0],[1,2],[2,0],[2,2]],
 };
 
-function DieFace({ value, th, size=56 }) {
+function DieFace({ value, th, size=56, themeName }) {
   const active = value ? DICE_PIPS[value] : [];
+  const isSki = themeName==="ski";
   return (
     <div style={{
       width:size, height:size, borderRadius:size*0.18, boxSizing:"border-box",
       display:"grid", gridTemplateColumns:"repeat(3,1fr)", gridTemplateRows:"repeat(3,1fr)",
       padding:size*0.14,
-      background: value ? "#f5f5f0" : "transparent",
-      border: value ? "1px solid rgba(0,0,0,0.15)" : `1px dashed ${th.border}`,
+      background: value ? (isSki ? "#2C4A68" : "#f5f5f0") : "transparent",
+      border: value ? (isSki ? "1px solid #3E7F91" : "1px solid rgba(0,0,0,0.15)") : `1px dashed ${th.border}`,
       boxShadow: value ? "0 2px 6px rgba(0,0,0,0.3)" : "none",
     }}>
       {Array.from({length:9}).map((_,i)=>{
@@ -26,7 +27,7 @@ function DieFace({ value, th, size=56 }) {
         const on = active.some(([ar,ac])=>ar===r&&ac===c);
         return (
           <div key={i} style={{display:"flex",alignItems:"center",justifyContent:"center"}}>
-            {on && <div style={{width:"62%",height:"62%",borderRadius:"50%",background:"#1a1a1a"}}/>}
+            {on && <div style={{width:"62%",height:"62%",borderRadius:"50%",background:isSki?"#F2EEE4":"#1a1a1a"}}/>}
           </div>
         );
       })}
@@ -197,7 +198,7 @@ export default function DiceScreen({ th, go, S, themeName }) {
                       filter: locked[i] ? `drop-shadow(0 0 7px ${th.gold})` : "none",
                     }}
                   >
-                    <DieFace value={v} th={th} size={dieSize}/>
+                    <DieFace value={v} th={th} size={dieSize} themeName={themeName}/>
                   </button>
                 );
               })}
