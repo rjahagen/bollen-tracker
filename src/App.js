@@ -72,11 +72,13 @@ export default function App() {
   }, []);
   useEffect(()=>{
     async function loadEvents() {
-      const { data } = await supabase.from('events').select('*');
+      let q = supabase.from('events').select('*');
+      if (currentGroupId) q = q.eq('group_id', currentGroupId);
+      const { data } = await q;
       if (data) setEvents(data);
     }
     loadEvents();
-  }, []);
+  }, [currentGroupId]);
   useEffect(()=>{
     async function loadGroups(){
       const [{data:g},{data:m}]=await Promise.all([
@@ -599,7 +601,8 @@ export default function App() {
   if (screen==="countdown") return (
     <CountdownScreen
       th={th} go={go} supabase={supabase} S={S}
-      friends={friends} events={events} setEvents={setEvents}
+      friends={groupFriends} events={events} setEvents={setEvents}
+      currentGroupId={currentGroupId} currentGroup={currentGroup}
       themeName={themeName}
     />
   );
